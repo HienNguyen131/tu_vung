@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IELTS Flip Flashcards</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background:
+    radial-gradient(circle at top left, #dbeafe 0, transparent 28%),
+    radial-gradient(circle at bottom right, #fce7f3 0, transparent 30%),
+    linear-gradient(135deg, #f8fafc, #eef2ff);
+  color: #111827;
+  min-height: 100vh;
+}
+header {
+  text-align: center;
+  padding: 32px 16px 12px;
+}
+h1 {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 48px);
+  color: #3730a3;
+}
+.subtitle {
+  color: #64748b;
+  margin: 10px auto 0;
+  max-width: 920px;
+  line-height: 1.6;
+}
+.source {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #475569;
+}
+.source a {
+  color: #4f46e5;
+  text-decoration: none;
+}
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(255,255,255,.9);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(226,232,240,.8);
+  border-bottom: 1px solid rgba(226,232,240,.8);
+  padding: 14px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+input {
+  width: min(520px, 92vw);
+  padding: 13px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 16px;
+  font-size: 16px;
+  outline: none;
+  background: white;
+}
+input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 4px rgba(99,102,241,.15);
+}
+.nav-controls,
+.mode-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.nav-btn,
+.chip-btn,
+.review-btn {
+  border: none;
+  border-radius: 16px;
+  padding: 12px 16px;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.nav-btn {
+  background: #4f46e5;
+  box-shadow: 0 10px 20px rgba(79,70,229,.18);
+}
+.nav-btn:hover { background: #4338ca; }
+.nav-btn:disabled,
+.review-btn:disabled,
+.chip-btn:disabled {
+  background: #a5b4fc;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.chip-btn {
+  background: #0f172a;
+}
+.chip-btn.active {
+  background: #0ea5e9;
+}
+.stat {
+  padding: 13px 16px;
+  border-radius: 16px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-weight: 700;
+}
+.status-bar {
+  text-align: center;
+  min-height: 22px;
+  margin: 18px 16px 0;
+  color: #475569;
+  font-size: 14px;
+}
+.status-bar.error { color: #b91c1c; }
+.status-bar.success { color: #166534; }
+.study-panel {
+  max-width: 920px;
+  margin: 14px auto 0;
+  padding: 0 18px;
+}
+.study-box {
+  background: rgba(255,255,255,.75);
+  border: 1px solid rgba(226,232,240,.9);
+  border-radius: 22px;
+  padding: 16px;
+  box-shadow: 0 10px 24px rgba(30,41,59,.08);
+}
+.study-stats {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+.study-badges {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.badge {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 700;
+}
+.study-note {
+  margin-top: 12px;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.filter-row {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.filter-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.filter-label {
+  color: #475569;
+  font-size: 14px;
+  font-weight: 700;
+}
+.filter-select {
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: white;
+  color: #0f172a;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+.due-list {
+  margin-top: 16px;
+  display: grid;
+  gap: 10px;
+}
+.due-list-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.due-list-title {
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 800;
+}
+.due-list-meta {
+  color: #64748b;
+  font-size: 13px;
+}
+.due-list-items {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.due-pill {
+  border: 1px solid #cbd5e1;
+  background: white;
+  color: #1e293b;
+  border-radius: 999px;
+  padding: 9px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.due-pill:hover {
+  border-color: #6366f1;
+  color: #3730a3;
+}
+.due-pill.active {
+  background: #eef2ff;
+  border-color: #6366f1;
+  color: #3730a3;
+}
+.due-pill small {
+  color: #64748b;
+}
+.review-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.review-btn.again { background: #ef4444; }
+.review-btn.hard { background: #f59e0b; }
+.review-btn.good { background: #10b981; }
+.review-btn.easy { background: #3b82f6; }
+.next-review {
+  margin-top: 12px;
+  text-align: center;
+  color: #475569;
+  font-size: 14px;
+}
+.stage {
+  max-width: 860px;
+  margin: 22px auto 56px;
+  padding: 0 18px;
+}
+.card {
+  height: 470px;
+  perspective: 1100px;
+  cursor: pointer;
+}
+.inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform .58s cubic-bezier(.2,.8,.2,1);
+}
+.card.flipped .inner {
+  transform: rotateY(180deg);
+}
+.face {
+  position: absolute;
+  inset: 0;
+  border-radius: 28px;
+  padding: 30px;
+  backface-visibility: hidden;
+  box-shadow: 0 18px 35px rgba(30,41,59,.14);
+  overflow: hidden;
+}
+.front {
+  background: rgba(255,255,255,.96);
+  border: 1px solid rgba(226,232,240,.9);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.front::after {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  border-radius: 999px;
+  background: rgba(99,102,241,.09);
+  right: -40px;
+  bottom: -40px;
+}
+.back {
+  transform: rotateY(180deg);
+  background: linear-gradient(145deg, #111827, #312e81);
+  color: white;
+  line-height: 1.55;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.num,
+.tag {
+  position: absolute;
+  top: 16px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  z-index: 2;
+}
+.num {
+  left: 16px;
+  background: #eef2ff;
+  color: #3730a3;
+}
+.tag {
+  right: 16px;
+  color: #475569;
+  background: #f1f5f9;
+}
+.back .num {
+  background: rgba(255,255,255,.14);
+  color: white;
+}
+h2 {
+  color: #4f46e5;
+  font-size: clamp(34px, 4vw, 54px);
+  margin: 18px 0 10px;
+  line-height: 1.12;
+  z-index: 1;
+}
+.ipa {
+  color: #475569;
+  font-size: 24px;
+  margin: 10px 0 24px;
+  z-index: 1;
+}
+.speaker {
+  z-index: 3;
+  border: none;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: #4f46e5;
+  color: white;
+  font-size: 34px;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(79,70,229,.25);
+}
+.speaker:hover {
+  transform: scale(1.06);
+  background: #4338ca;
+}
+h3 {
+  color: #fde68a;
+  font-size: 34px;
+  margin: 0 0 16px;
+  line-height: 1.15;
+}
+p {
+  margin: 8px 0;
+  font-size: 18px;
+}
+.hint {
+  color: #94a3b8;
+  font-size: 16px;
+  margin-top: 24px;
+  z-index: 1;
+}
+.backhint {
+  color: #cbd5e1;
+  margin-top: 12px;
+}
+.empty-state {
+  display: none;
+  text-align: center;
+  margin: 28px auto 56px;
+  padding: 20px;
+  color: #64748b;
+  font-size: 18px;
+}
+.empty-state.show { display: block; }
+.footer {
+  text-align: center;
+  color: #64748b;
+  padding: 0 16px 35px;
+}
+.footer code {
+  background: rgba(255,255,255,.7);
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+@media (max-width: 560px) {
+  .stage { max-width: 100%; }
+  .card { height: 390px; }
+  .face { padding: 22px; }
+  h2, h3 { font-size: clamp(28px, 9vw, 40px); }
+  .ipa, p { font-size: 16px; }
+  .speaker {
+    width: 68px;
+    height: 68px;
+    font-size: 28px;
+  }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Premium IELTS Flip Flashcards</h1>
+  <p class="subtitle">
+    Trang này đọc trực tiếp từ Google Sheet của bạn. Bạn chỉ cần nhập từ tiếng Anh trong sheet;
+    IPA, nghĩa, ví dụ và các cột bổ sung có thể để sheet tự điền rồi flashcard sẽ tự lấy sang.
+  </p>
+  <p class="source">
+    Nguồn dữ liệu:
+    <a id="sheetLink" href="#" target="_blank" rel="noreferrer">Google Sheet</a>
+  </p>
+</header>
+
+<div class="toolbar">
+  <input id="search" placeholder="Tìm từ/cụm từ... ví dụ: crispy, gratification, healthcare" oninput="filterCards()">
+  <div class="nav-controls">
+    <button class="nav-btn" id="prevBtn" onclick="showPrevCard()">Prev</button>
+    <div class="stat"><span id="position">0</span> / <span id="count">0</span> thẻ</div>
+    <button class="nav-btn" id="nextBtn" onclick="showNextCard()">Next</button>
+  </div>
+  <div class="mode-controls">
+    <button class="chip-btn active" id="modeAllBtn" onclick="setStudyMode('all')">Tất cả</button>
+    <button class="chip-btn" id="modeDueBtn" onclick="setStudyMode('due')">Đến hạn</button>
+    <button class="chip-btn active" id="slowAudioBtn" onclick="toggleSlowAudio()">Đọc chậm: Bật</button>
+  </div>
+</div>
+
+<p class="status-bar" id="statusBar">Đang tải dữ liệu từ Google Sheet...</p>
+
+<section class="study-panel">
+  <div class="study-box">
+    <div class="study-stats">
+      <div class="study-badges">
+        <div class="badge">Tổng: <span id="totalCards">0</span></div>
+        <div class="badge">Đến hạn: <span id="dueCards">0</span></div>
+        <div class="badge">Đã có lịch: <span id="scheduledCards">0</span></div>
+      </div>
+      <div class="badge">Chế độ: <span id="studyModeLabel">Tất cả</span></div>
+    </div>
+    <p class="study-note">
+      Luyện tập ngắt quãng: lật thẻ xong, tự chấm mức nhớ của bạn bằng
+      <b>Again</b>, <b>Hard</b>, <b>Good</b>, <b>Easy</b>. Tiến độ sẽ được lưu ngay trên trình duyệt này.
+    </p>
+    <div class="filter-row">
+      <div class="filter-group">
+        <span class="filter-label">Mức review</span>
+        <select class="filter-select" id="reviewFilter" onchange="applyReviewFilters()">
+          <option value="all">Tất cả</option>
+          <option value="again">Again</option>
+          <option value="hard">Hard</option>
+          <option value="good">Good</option>
+          <option value="easy">Easy</option>
+          <option value="unrated">Chưa chấm</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Thời gian</span>
+        <select class="filter-select" id="timeFilter" onchange="applyReviewFilters()">
+          <option value="all">Tất cả</option>
+          <option value="due">Đang đến hạn</option>
+          <option value="24h">Trong 24 giờ</option>
+          <option value="3d">Trong 3 ngày</option>
+          <option value="7d">Trong 7 ngày</option>
+          <option value="later">Trên 7 ngày</option>
+          <option value="unscheduled">Chưa có lịch</option>
+        </select>
+      </div>
+    </div>
+    <div class="due-list">
+      <div class="due-list-header">
+        <div class="due-list-title">Từ cần review</div>
+        <div class="due-list-meta" id="dueListMeta">Chưa có dữ liệu</div>
+      </div>
+      <div class="due-list-items" id="dueListItems"></div>
+    </div>
+    <div class="review-actions">
+      <button class="review-btn again" id="againBtn" onclick="reviewCurrentCard('again')">Again</button>
+      <button class="review-btn hard" id="hardBtn" onclick="reviewCurrentCard('hard')">Hard</button>
+      <button class="review-btn good" id="goodBtn" onclick="reviewCurrentCard('good')">Good</button>
+      <button class="review-btn easy" id="easyBtn" onclick="reviewCurrentCard('easy')">Easy</button>
+    </div>
+    <div class="next-review" id="nextReviewInfo">Lật thẻ rồi chọn mức nhớ để lên lịch ôn lại.</div>
+  </div>
+</section>
+
+<main class="stage">
+  <div class="card" id="card" onclick="flipCard()">
+    <div class="inner">
+      <section class="face front">
+        <span class="num" id="frontNum">1</span>
+        <span class="tag" id="frontTag">word</span>
+        <h2 id="frontWord">Loading...</h2>
+        <p class="ipa" id="frontIpa">...</p>
+        <button class="speaker" id="speakerBtn" onclick="playPronunciation(event)" title="Phát âm chậm">🔊</button>
+        <p class="hint">Bấm vào thẻ để lật</p>
+      </section>
+      <section class="face back">
+        <span class="num" id="backNum">1</span>
+        <h3 id="backWord">Loading...</h3>
+        <div id="backContent"></div>
+        <p class="hint backhint">Bấm lại để quay về</p>
+      </section>
+    </div>
+  </div>
+</main>
+
+<p class="empty-state" id="emptyState">Không tìm thấy thẻ phù hợp.</p>
+
+<p class="footer">
+  Nếu sheet là riêng tư thì file tĩnh sẽ không đọc được trực tiếp.
+  Khi đó hãy chuyển sheet sang <code>Anyone with the link can view</code> hoặc dùng OAuth/API.
+</p>
+
+<script>
+const SHEET_EDIT_URL = 'https://docs.google.com/spreadsheets/d/1Qgo5MPMtL04fCDDxt58VrAWRoOAELoNjw5Op-h-Z3Ko/edit?gid=886364712#gid=886364712';
+const STORAGE_KEY = 'ielts_flashcards_progress_v1';
+
+const cards = [];
+let filteredCards = [];
+let currentIndex = 0;
+let searchQuery = '';
+let studyMode = 'all';
+let reviewFilter = 'all';
+let timeFilter = 'all';
+let slowAudioEnabled = true;
+let progressMap = {};
+
+document.getElementById('sheetLink').href = SHEET_EDIT_URL;
+
+function setStatus(message, type = '') {
+  const statusBar = document.getElementById('statusBar');
+  statusBar.textContent = message;
+  statusBar.className = `status-bar${type ? ` ${type}` : ''}`;
+}
+
+function buildCsvUrl(sheetUrl) {
+  const url = new URL(sheetUrl);
+  const match = url.pathname.match(/\/d\/([^/]+)/);
+  if (!match) throw new Error('Không đọc được spreadsheet ID từ URL.');
+  const spreadsheetId = match[1];
+  const gid = url.searchParams.get('gid') || url.hash.replace('#gid=', '') || '0';
+  return `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:csv&gid=${gid}`;
+}
+
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let value = '';
+  let inQuotes = false;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+    const next = text[index + 1];
+
+    if (char === '"') {
+      if (inQuotes && next === '"') {
+        value += '"';
+        index += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === ',' && !inQuotes) {
+      row.push(value);
+      value = '';
+      continue;
+    }
+
+    if ((char === '\n' || char === '\r') && !inQuotes) {
+      if (char === '\r' && next === '\n') index += 1;
+      row.push(value);
+      if (row.some(cell => cell.trim() !== '')) rows.push(row);
+      row = [];
+      value = '';
+      continue;
+    }
+
+    value += char;
+  }
+
+  if (value.length || row.length) {
+    row.push(value);
+    if (row.some(cell => cell.trim() !== '')) rows.push(row);
+  }
+
+  return rows;
+}
+
+function normalizeHeader(header) {
+  return header.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+function mapRows(rows) {
+  if (!rows.length) return [];
+
+  const headers = rows[0].map(normalizeHeader);
+  return rows
+    .slice(1)
+    .map(values => {
+      const row = {};
+      headers.forEach((header, index) => {
+        row[header] = (values[index] || '').trim();
+      });
+      return row;
+    })
+    .filter(row => row.word);
+}
+
+function detectTag(row) {
+  const candidates = [
+    row['part of speech'],
+    row['type'],
+    row['example'],
+    row['topic']
+  ].filter(Boolean);
+
+  const shortTag = candidates.find(value =>
+    /^(n|v|adj|adv|phrase|verb|noun|phrasal verb|idiom|collocation|phr\.)$/i.test(value.trim())
+  );
+
+  return shortTag || 'word';
+}
+
+function escapeHtml(value) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+function buildBackHtml(card) {
+  const blocks = [];
+
+  if (card.meaning) {
+    blocks.push(`<p><b>Nghĩa tiếng Việt:</b><br>${escapeHtml(card.meaning)}</p>`);
+  }
+  if (card.synonyms) {
+    blocks.push(`<p><b>Synonyms:</b><br>${escapeHtml(card.synonyms)}</p>`);
+  }
+  if (card.antonyms) {
+    blocks.push(`<p><b>Antonyms:</b><br>${escapeHtml(card.antonyms)}</p>`);
+  }
+  if (card.exam) {
+    blocks.push(`<p><b>Exam:</b><br>${escapeHtml(card.exam)}</p>`);
+  }
+  if (card.example && !/^(n|v|adj|adv|phrase|verb|noun|phrasal verb|idiom|collocation|phr\.)$/i.test(card.example)) {
+    blocks.push(`<p><b>Example:</b><br>${escapeHtml(card.example)}</p>`);
+  }
+  if (card.topic) {
+    blocks.push(`<p><b>Topic:</b><br>${escapeHtml(card.topic)}</p>`);
+  }
+
+  return blocks.join('');
+}
+
+function cardId(card) {
+  return `${card.word}__${card.ipa || ''}`;
+}
+
+function loadProgress() {
+  try {
+    progressMap = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+  } catch {
+    progressMap = {};
+  }
+}
+
+function saveProgress() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(progressMap));
+}
+
+function getProgress(card) {
+  return progressMap[cardId(card)] || { stage: 0, nextReviewAt: 0, lastRating: '' };
+}
+
+function getDueCount() {
+  const now = Date.now();
+  return cards.filter(card => {
+    const progress = getProgress(card);
+    return !progress.nextReviewAt || progress.nextReviewAt <= now;
+  }).length;
+}
+
+function getScheduledCount() {
+  return cards.filter(card => getProgress(card).nextReviewAt).length;
+}
+
+function getRatingCount(rating) {
+  return cards.filter(card => getProgress(card).lastRating === rating).length;
+}
+
+function formatRelativeTime(timestamp) {
+  if (!timestamp) return 'Chưa có lịch ôn.';
+  const diff = timestamp - Date.now();
+  if (diff <= 0) return 'Đang đến hạn ôn lại.';
+
+  const minutes = Math.round(diff / 60000);
+  if (minutes < 60) return `Ôn lại sau khoảng ${minutes} phút.`;
+
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `Ôn lại sau khoảng ${hours} giờ.`;
+
+  const days = Math.round(hours / 24);
+  return `Ôn lại sau khoảng ${days} ngày.`;
+}
+
+function getReviewSchedule(stage, rating) {
+  if (rating === 'again') {
+    return { stage: 0, minutes: 10 };
+  }
+
+  if (rating === 'hard') {
+    const nextStage = Math.max(1, stage);
+    const minutesByStage = [30, 180, 720, 1440, 4320, 10080];
+    return {
+      stage: nextStage,
+      minutes: minutesByStage[Math.min(nextStage - 1, minutesByStage.length - 1)]
+    };
+  }
+
+  if (rating === 'good') {
+    const nextStage = stage + 1;
+    const minutesByStage = [720, 1440, 4320, 10080, 20160, 43200];
+    return {
+      stage: nextStage,
+      minutes: minutesByStage[Math.min(nextStage - 1, minutesByStage.length - 1)]
+    };
+  }
+
+  const nextStage = stage + 2;
+  const minutesByStage = [1440, 4320, 10080, 20160, 43200, 86400];
+  return {
+    stage: nextStage,
+    minutes: minutesByStage[Math.min(nextStage - 1, minutesByStage.length - 1)]
+  };
+}
+
+function updateStudyStats() {
+  document.getElementById('totalCards').textContent = cards.length;
+  document.getElementById('dueCards').textContent = getDueCount();
+  document.getElementById('scheduledCards').textContent = getScheduledCount();
+  const modeText = studyMode === 'due' ? 'Đến hạn' : 'Tất cả';
+  const reviewText = reviewFilter === 'all'
+    ? 'mọi mức'
+    : reviewFilter === 'unrated'
+      ? 'chưa chấm'
+      : reviewFilter.toUpperCase();
+  const timeTextMap = {
+    all: 'mọi thời gian',
+    due: 'đang đến hạn',
+    '24h': '24 giờ',
+    '3d': '3 ngày',
+    '7d': '7 ngày',
+    later: 'trên 7 ngày',
+    unscheduled: 'chưa có lịch'
+  };
+  document.getElementById('studyModeLabel').textContent = `${modeText} · ${reviewText} · ${timeTextMap[timeFilter]}`;
+  document.getElementById('modeAllBtn').classList.toggle('active', studyMode === 'all');
+  document.getElementById('modeDueBtn').classList.toggle('active', studyMode === 'due');
+  document.getElementById('slowAudioBtn').classList.toggle('active', slowAudioEnabled);
+  document.getElementById('slowAudioBtn').textContent = `Đọc chậm: ${slowAudioEnabled ? 'Bật' : 'Tắt'}`;
+}
+
+function isDue(card) {
+  const progress = getProgress(card);
+  return !progress.nextReviewAt || progress.nextReviewAt <= Date.now();
+}
+
+function matchesReviewFilter(card) {
+  const rating = getProgress(card).lastRating || '';
+  if (reviewFilter === 'all') return true;
+  if (reviewFilter === 'unrated') return !rating;
+  return rating === reviewFilter;
+}
+
+function matchesTimeFilter(card) {
+  const { nextReviewAt } = getProgress(card);
+  const now = Date.now();
+
+  if (timeFilter === 'all') return true;
+  if (timeFilter === 'unscheduled') return !nextReviewAt;
+  if (!nextReviewAt) return false;
+
+  const diff = nextReviewAt - now;
+  if (timeFilter === 'due') return diff <= 0;
+  if (timeFilter === '24h') return diff > 0 && diff <= 24 * 60 * 60 * 1000;
+  if (timeFilter === '3d') return diff > 0 && diff <= 3 * 24 * 60 * 60 * 1000;
+  if (timeFilter === '7d') return diff > 0 && diff <= 7 * 24 * 60 * 60 * 1000;
+  if (timeFilter === 'later') return diff > 7 * 24 * 60 * 60 * 1000;
+  return true;
+}
+
+function recomputeFilteredCards(preserveWord = '') {
+  filteredCards = cards.filter(card => {
+    const haystack = [
+      card.word,
+      card.ipa,
+      card.meaning,
+      card.synonyms,
+      card.antonyms,
+      card.example,
+      card.exam,
+      card.topic
+    ].join(' ').toLowerCase();
+
+    const searchMatch = !searchQuery || haystack.includes(searchQuery);
+    const modeMatch = studyMode === 'all' || isDue(card);
+    const reviewMatch = matchesReviewFilter(card);
+    const timeMatch = matchesTimeFilter(card);
+    return searchMatch && modeMatch && reviewMatch && timeMatch;
+  });
+
+  const preservedIndex = filteredCards.findIndex(card => card.word === preserveWord);
+  currentIndex = preservedIndex >= 0 ? preservedIndex : 0;
+}
+
+function getReviewLabel(rating) {
+  if (!rating) return 'Chưa chấm';
+  return rating.toUpperCase();
+}
+
+function formatReviewShort(timestamp) {
+  if (!timestamp) return 'chưa có lịch';
+  const diff = timestamp - Date.now();
+  if (diff <= 0) return 'đến hạn';
+  const minutes = Math.round(diff / 60000);
+  if (minutes < 60) return `${minutes} phút`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours} giờ`;
+  const days = Math.round(hours / 24);
+  return `${days} ngày`;
+}
+
+function jumpToCard(word) {
+  const targetIndex = filteredCards.findIndex(card => card.word === word);
+  if (targetIndex >= 0) {
+    currentIndex = targetIndex;
+    renderCard();
+  }
+}
+
+function updateDueList() {
+  const dueListItems = document.getElementById('dueListItems');
+  const dueListMeta = document.getElementById('dueListMeta');
+
+  if (!cards.length) {
+    dueListItems.innerHTML = '';
+    dueListMeta.textContent = 'Chưa có dữ liệu';
+    return;
+  }
+
+  const showDueOnly = studyMode === 'due' || (reviewFilter === 'all' && timeFilter === 'all');
+  const dueCards = cards
+    .filter(card => {
+      const baseMatch = showDueOnly ? isDue(card) : true;
+      return baseMatch && matchesReviewFilter(card) && matchesTimeFilter(card);
+    })
+    .sort((left, right) => {
+      const leftTime = getProgress(left).nextReviewAt || 0;
+      const rightTime = getProgress(right).nextReviewAt || 0;
+      return leftTime - rightTime;
+    });
+
+  dueListMeta.textContent =
+    `Khớp bộ lọc: ${dueCards.length} · Đến hạn: ${getDueCount()} · Again ${getRatingCount('again')} · Hard ${getRatingCount('hard')} · Good ${getRatingCount('good')} · Easy ${getRatingCount('easy')}`;
+
+  if (!dueCards.length) {
+    dueListItems.innerHTML = '<span class="due-list-meta">Không có từ nào khớp bộ lọc hiện tại.</span>';
+    return;
+  }
+
+  const activeWord = filteredCards[currentIndex]?.word || '';
+  dueListItems.innerHTML = dueCards
+    .slice(0, 40)
+    .map(card => {
+      const progress = getProgress(card);
+      const activeClass = card.word === activeWord ? ' active' : '';
+      return `<button class="due-pill${activeClass}" data-word="${escapeHtml(card.word)}" onclick="jumpToCard(this.dataset.word)">
+        ${escapeHtml(card.word)} <small>· ${getReviewLabel(progress.lastRating)} · ${formatReviewShort(progress.nextReviewAt)}</small>
+      </button>`;
+    })
+    .join('');
+}
+
+function updateReviewInfo(card) {
+  const buttons = ['againBtn', 'hardBtn', 'goodBtn', 'easyBtn'];
+  const disabled = !card;
+  buttons.forEach(id => {
+    document.getElementById(id).disabled = disabled;
+  });
+
+  if (!card) {
+    document.getElementById('nextReviewInfo').textContent = 'Không có thẻ phù hợp trong bộ lọc hiện tại.';
+    return;
+  }
+
+  const progress = getProgress(card);
+  const stage = progress.stage || 0;
+  const stageText = stage ? `Mức nhớ hiện tại: ${stage}.` : 'Thẻ này chưa có lịch ôn.';
+  document.getElementById('nextReviewInfo').textContent = `${stageText} ${formatRelativeTime(progress.nextReviewAt)}`;
+}
+
+function renderCard() {
+  const total = filteredCards.length;
+  const hasCards = total > 0;
+  const emptyState = document.getElementById('emptyState');
+  const cardEl = document.getElementById('card');
+
+  document.getElementById('count').textContent = total;
+  document.getElementById('position').textContent = hasCards ? currentIndex + 1 : 0;
+  document.getElementById('prevBtn').disabled = total <= 1;
+  document.getElementById('nextBtn').disabled = total <= 1;
+  emptyState.classList.toggle('show', !hasCards);
+  cardEl.style.display = hasCards ? 'block' : 'none';
+
+  if (!hasCards) {
+    updateReviewInfo(null);
+    updateStudyStats();
+    updateDueList();
+    return;
+  }
+
+  cardEl.classList.remove('flipped');
+
+  const card = filteredCards[currentIndex];
+  document.getElementById('frontNum').textContent = card.number;
+  document.getElementById('backNum').textContent = card.number;
+  document.getElementById('frontTag').textContent = card.tag;
+  document.getElementById('frontWord').textContent = card.word;
+  document.getElementById('backWord').textContent = card.word;
+  document.getElementById('frontIpa').textContent = card.ipa || 'Chưa có IPA';
+  document.getElementById('speakerBtn').title = card.audio ? 'Phát audio chậm' : 'Phát âm chậm';
+  document.getElementById('backContent').innerHTML = buildBackHtml(card);
+
+  updateReviewInfo(card);
+  updateStudyStats();
+  updateDueList();
+}
+
+function flipCard() {
+  if (!filteredCards.length) return;
+  document.getElementById('card').classList.toggle('flipped');
+}
+
+function showCard(index) {
+  if (!filteredCards.length) return;
+  currentIndex = (index + filteredCards.length) % filteredCards.length;
+  renderCard();
+}
+
+function showPrevCard() {
+  showCard(currentIndex - 1);
+}
+
+function showNextCard() {
+  showCard(currentIndex + 1);
+}
+
+function filterCards() {
+  searchQuery = document.getElementById('search').value.toLowerCase().trim();
+  const currentWord = filteredCards[currentIndex]?.word || '';
+  recomputeFilteredCards(currentWord);
+  renderCard();
+}
+
+function applyReviewFilters() {
+  reviewFilter = document.getElementById('reviewFilter').value;
+  timeFilter = document.getElementById('timeFilter').value;
+  const currentWord = filteredCards[currentIndex]?.word || '';
+  recomputeFilteredCards(currentWord);
+  renderCard();
+}
+
+function setStudyMode(mode) {
+  studyMode = mode;
+  const currentWord = filteredCards[currentIndex]?.word || '';
+  recomputeFilteredCards(currentWord);
+  renderCard();
+}
+
+function toggleSlowAudio() {
+  slowAudioEnabled = !slowAudioEnabled;
+  updateStudyStats();
+}
+
+async function playPronunciation(event) {
+  event.stopPropagation();
+  if (!filteredCards.length) return;
+
+  const card = filteredCards[currentIndex];
+  if (card.audio) {
+    const audio = new Audio(card.audio);
+    audio.playbackRate = slowAudioEnabled ? 0.75 : 1;
+    audio.preservesPitch = true;
+    try {
+      await audio.play();
+      return;
+    } catch (error) {
+      console.warn('Audio URL play failed, fallback to speech synthesis.', error);
+    }
+  }
+
+  if (!('speechSynthesis' in window)) {
+    alert('Trình duyệt này không hỗ trợ phát âm tự động.');
+    return;
+  }
+
+  speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(card.word);
+  utterance.lang = 'en-US';
+  utterance.rate = slowAudioEnabled ? 0.65 : 0.9;
+  utterance.pitch = 1;
+
+  const voices = speechSynthesis.getVoices();
+  const usVoice =
+    voices.find(voice => voice.lang === 'en-US' && /Google|Microsoft|Samantha|Alex/i.test(voice.name)) ||
+    voices.find(voice => voice.lang === 'en-US') ||
+    voices.find(voice => voice.lang && voice.lang.startsWith('en'));
+
+  if (usVoice) utterance.voice = usVoice;
+  speechSynthesis.speak(utterance);
+}
+
+function reviewCurrentCard(rating) {
+  if (!filteredCards.length) return;
+
+  const card = filteredCards[currentIndex];
+  const progress = getProgress(card);
+  const schedule = getReviewSchedule(progress.stage || 0, rating);
+
+  progressMap[cardId(card)] = {
+    stage: schedule.stage,
+    nextReviewAt: Date.now() + schedule.minutes * 60 * 1000,
+    lastRating: rating
+  };
+
+  saveProgress();
+
+  const currentWord = card.word;
+  recomputeFilteredCards(currentWord);
+
+  if (studyMode === 'due' && !filteredCards.some(item => item.word === currentWord)) {
+    currentIndex = Math.min(currentIndex, Math.max(filteredCards.length - 1, 0));
+  } else {
+    const nextIndex = filteredCards.findIndex(item => item.word === currentWord);
+    currentIndex = nextIndex >= 0 ? nextIndex : Math.min(currentIndex + 1, Math.max(filteredCards.length - 1, 0));
+  }
+
+  setStatus(`Đã lên lịch ôn lại cho "${card.word}" với mức ${rating.toUpperCase()}.`, 'success');
+  renderCard();
+}
+
+async function loadSheetData() {
+  try {
+    const csvUrl = buildCsvUrl(SHEET_EDIT_URL);
+    const response = await fetch(csvUrl);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const csvText = await response.text();
+    const rows = mapRows(parseCsv(csvText));
+    if (!rows.length) {
+      throw new Error('Sheet không có dòng dữ liệu nào.');
+    }
+
+    cards.splice(0, cards.length, ...rows.map((row, index) => ({
+      number: index + 1,
+      word: row.word,
+      ipa: row.ipa,
+      audio: row.audio,
+      meaning: row.meaning,
+      example: row.example,
+      exam: row.exam,
+      topic: row.topic,
+      synonyms: row.synonyms,
+      antonyms: row.antonyms,
+      tag: detectTag(row)
+    })));
+
+    recomputeFilteredCards();
+    renderCard();
+    setStatus(`Đã tải ${cards.length} thẻ từ Google Sheet.`, 'success');
+  } catch (error) {
+    console.error(error);
+    setStatus('Không đọc được Google Sheet. Hãy kiểm tra quyền chia sẻ sheet hoặc dùng link sheet công khai.', 'error');
+    filteredCards = [];
+    renderCard();
+  }
+}
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'ArrowLeft') {
+    showPrevCard();
+  } else if (event.key === 'ArrowRight') {
+    showNextCard();
+  }
+});
+
+if ('speechSynthesis' in window) {
+  window.speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+}
+
+loadProgress();
+updateStudyStats();
+loadSheetData();
+</script>
+</body>
+</html>
