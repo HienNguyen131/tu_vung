@@ -277,6 +277,9 @@ input:focus {
   display: grid;
   gap: 10px;
 }
+.due-list.hidden {
+  display: none;
+}
 .due-list-header {
   display: flex;
   justify-content: space-between;
@@ -371,12 +374,42 @@ input:focus {
   font-weight: 800;
 }
 .progress-subtitle,
-.progress-footer {
+.progress-footer,
+.progress-track-labels {
   color: #64748b;
   font-size: 13px;
 }
-.progress-track {
+.progress-meta-row {
   margin-top: 12px;
+}
+.progress-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.progress-pill {
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 800;
+}
+.progress-pill.primary {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #3730a3;
+}
+.progress-track-labels {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.progress-track {
+  margin-top: 8px;
   height: 10px;
   border-radius: 999px;
   background: #e2e8f0;
@@ -740,6 +773,7 @@ p {
   <div class="mode-controls">
     <button class="chip-btn active" id="modeAllBtn" onclick="setStudyMode('all')">Tất cả</button>
     <button class="chip-btn" id="modeDueBtn" onclick="setStudyMode('due')">Đến hạn</button>
+    <button class="chip-btn" id="modeScheduledBtn" onclick="setStudyMode('scheduled')">Đã có lịch</button>
     <button class="chip-btn active" id="practiceFlashBtn" onclick="setPracticeMode('flashcard')">Thẻ</button>
     <button class="chip-btn" id="practiceMeaningBtn" onclick="setPracticeMode('quizMeaning')">Quiz nghĩa</button>
     <button class="chip-btn" id="practiceWordBtn" onclick="setPracticeMode('quizWord')">Quiz từ</button>
@@ -825,11 +859,23 @@ p {
         </div>
         <button class="secondary-btn progress-action" id="flipActionBtn" type="button" onclick="toggleCardAction(event)">Lật thẻ</button>
       </div>
+      <div class="progress-meta-row">
+        <div class="progress-pills">
+          <span class="progress-pill primary" id="progressModePill">Thẻ</span>
+          <span class="progress-pill" id="progressPositionPill">Đang học 0/0</span>
+          <span class="progress-pill" id="progressScheduledPill">Đã học 0/0</span>
+          <span class="progress-pill" id="progressDuePill">Đến hạn 0</span>
+        </div>
+      </div>
+      <div class="progress-track-labels">
+        <span id="progressTrackLabel">Tiến độ trong danh sách hiện tại</span>
+        <span id="progressTrackValue">0%</span>
+      </div>
       <div class="progress-track">
         <div class="progress-fill" id="progressFill"></div>
       </div>
       <div class="progress-footer">
-        <span id="sessionSummary">0 thẻ đang hiển thị</span>
+        <span id="sessionSummary">Chưa có dữ liệu tiến độ</span>
         <span id="shortcutHint">Space lật, ← → chuyển, 1-4 chấm, / để tìm</span>
       </div>
     </section>
@@ -1067,6 +1113,10 @@ function getPracticeModeLabel() {
   if (practiceMode === 'quizWord') return 'Quiz từ';
   if (practiceMode === 'writeWord') return 'Viết từ';
   return 'Thẻ';
+}
+
+function isBlindPracticeMode() {
+  return practiceMode === 'quizWord' || practiceMode === 'writeWord';
 }
 
 function canRateCurrentCard() {
@@ -1386,7 +1436,7 @@ function getDueCount() {
   const now = Date.now();
   return cards.filter(card => {
     const progress = getProgress(card);
-    return !progress.nextReviewAt || progress.nextReviewAt <= now;
+    return progress.nextReviewAt && progress.nextReviewAt <= now;
   }).length;
 }
 
@@ -1452,7 +1502,11 @@ function updateStudyStats() {
   document.getElementById('totalCards').textContent = cards.length;
   document.getElementById('dueCards').textContent = getDueCount();
   document.getElementById('scheduledCards').textContent = getScheduledCount();
-  const modeText = studyMode === 'due' ? 'Đến hạn' : 'Tất cả';
+  const modeText = studyMode === 'due'
+    ? 'Đến hạn'
+    : studyMode === 'scheduled'
+      ? 'Đã có lịch'
+      : 'Tất cả';
   const reviewText = reviewFilter === 'all'
     ? 'mọi mức'
     : reviewFilter === 'unrated'
@@ -1470,6 +1524,7 @@ function updateStudyStats() {
   document.getElementById('studyModeLabel').textContent = `${modeText} · ${reviewText} · ${timeTextMap[timeFilter]}`;
   document.getElementById('modeAllBtn').classList.toggle('active', studyMode === 'all');
   document.getElementById('modeDueBtn').classList.toggle('active', studyMode === 'due');
+  document.getElementById('modeScheduledBtn').classList.toggle('active', studyMode === 'scheduled');
   document.getElementById('practiceFlashBtn').classList.toggle('active', practiceMode === 'flashcard');
   document.getElementById('practiceMeaningBtn').classList.toggle('active', practiceMode === 'quizMeaning');
   document.getElementById('practiceWordBtn').classList.toggle('active', practiceMode === 'quizWord');
@@ -1495,7 +1550,7 @@ function updateStudyStats() {
 
 function isDue(card) {
   const progress = getProgress(card);
-  return !progress.nextReviewAt || progress.nextReviewAt <= Date.now();
+  return Boolean(progress.nextReviewAt) && progress.nextReviewAt <= Date.now();
 }
 
 function matchesReviewFilter(card) {
@@ -1536,7 +1591,9 @@ function recomputeFilteredCards(preserveWord = '') {
     ].join(' ').toLowerCase();
 
     const searchMatch = !searchQuery || haystack.includes(searchQuery);
-    const modeMatch = studyMode === 'all' || isDue(card);
+    const modeMatch = studyMode === 'all'
+      || (studyMode === 'due' && isDue(card))
+      || (studyMode === 'scheduled' && Boolean(getProgress(card).nextReviewAt));
     const reviewMatch = matchesReviewFilter(card);
     const timeMatch = matchesTimeFilter(card);
     return searchMatch && modeMatch && reviewMatch && timeMatch;
@@ -1586,12 +1643,24 @@ function updateSearchMeta() {
 function updateCardOverview(card) {
   const flipActionBtn = document.getElementById('flipActionBtn');
   const progressFill = document.getElementById('progressFill');
+  const progressModePill = document.getElementById('progressModePill');
+  const progressPositionPill = document.getElementById('progressPositionPill');
+  const progressScheduledPill = document.getElementById('progressScheduledPill');
+  const progressDuePill = document.getElementById('progressDuePill');
+  const progressTrackLabel = document.getElementById('progressTrackLabel');
+  const progressTrackValue = document.getElementById('progressTrackValue');
 
   if (!card) {
     document.getElementById('currentCardLabel').textContent = 'Không có thẻ phù hợp';
     document.getElementById('currentCardMeta').textContent = 'Thử xóa bớt bộ lọc hoặc từ khóa tìm kiếm.';
-    document.getElementById('sessionSummary').textContent = '0 thẻ đang hiển thị';
+    document.getElementById('sessionSummary').textContent = '0 thẻ trong danh sách hiện tại';
     document.getElementById('frontMeta').textContent = 'Không có dữ liệu để học.';
+    progressModePill.textContent = getPracticeModeLabel();
+    progressPositionPill.textContent = 'Đang học 0/0';
+    progressScheduledPill.textContent = `Đã học ${getScheduledCount()}/${cards.length}`;
+    progressDuePill.textContent = `Đến hạn ${getVisibleDueCount()}`;
+    progressTrackLabel.textContent = 'Tiến độ trong danh sách hiện tại';
+    progressTrackValue.textContent = '0%';
     flipActionBtn.textContent = practiceMode === 'flashcard' ? 'Lật thẻ' : 'Đổi câu hỏi';
     flipActionBtn.disabled = true;
     progressFill.style.width = '0%';
@@ -1602,11 +1671,30 @@ function updateCardOverview(card) {
   const progress = getProgress(card);
   const progressPercent = total ? ((currentIndex + 1) / total) * 100 : 0;
   const stageText = progress.stage ? `Mức nhớ ${progress.stage}` : 'Chưa lên lịch';
+  const hideAnswerText = isBlindPracticeMode();
+  const scheduledCount = getScheduledCount();
+  const visibleDueCount = getVisibleDueCount();
+  const reviewSummary = progress.lastRating
+    ? `${getReviewLabel(progress.lastRating)} · ${formatRelativeTime(progress.nextReviewAt)}`
+    : formatRelativeTime(progress.nextReviewAt);
 
-  document.getElementById('currentCardLabel').textContent = `${card.word} · ${card.tag}`;
-  document.getElementById('currentCardMeta').textContent = `${getPracticeModeLabel()} · Thẻ ${currentIndex + 1}/${total} · ${stageText} · ${describeCardProgress(card)}`;
-  document.getElementById('sessionSummary').textContent = `${total} thẻ đang hiển thị · ${getVisibleDueCount()} thẻ đến hạn`;
-  document.getElementById('frontMeta').textContent = describeCardProgress(card);
+  document.getElementById('currentCardLabel').textContent = hideAnswerText
+    ? `${getPracticeModeLabel()} đang học`
+    : `${card.word} · ${card.tag}`;
+  document.getElementById('currentCardMeta').textContent = hideAnswerText
+    ? `${stageText} · ${reviewSummary}`
+    : `${getPracticeModeLabel()} · ${stageText} · ${reviewSummary}`;
+  document.getElementById('sessionSummary').textContent =
+    visibleDueCount > 0
+      ? `Còn ${visibleDueCount} thẻ đến hạn trong danh sách hiện tại`
+      : 'Danh sách hiện tại không còn thẻ đến hạn';
+  document.getElementById('frontMeta').textContent = hideAnswerText ? stageText : describeCardProgress(card);
+  progressModePill.textContent = getPracticeModeLabel();
+  progressPositionPill.textContent = `Đang học ${currentIndex + 1}/${total}`;
+  progressScheduledPill.textContent = `Đã học ${scheduledCount}/${cards.length}`;
+  progressDuePill.textContent = `Đến hạn ${visibleDueCount}`;
+  progressTrackLabel.textContent = 'Tiến độ trong danh sách hiện tại';
+  progressTrackValue.textContent = `${Math.round(progressPercent)}%`;
   if (practiceMode === 'flashcard') {
     flipActionBtn.textContent = isCardFlipped ? 'Về mặt trước' : 'Lật thẻ';
   } else {
@@ -1674,9 +1762,7 @@ function renderQuiz(card) {
       feedbackEl.hidden = true;
       feedbackEl.textContent = '';
       feedbackEl.className = 'quiz-feedback';
-      answerMetaEl.textContent = quizState.helper
-        ? `Gợi ý: ${quizState.helper}. Nhấn Enter để kiểm tra.`
-        : 'Gõ đáp án rồi nhấn Enter để kiểm tra.';
+      answerMetaEl.textContent = 'Gõ đáp án rồi nhấn Enter để kiểm tra.';
     } else {
       feedbackEl.hidden = false;
       feedbackEl.className = `quiz-feedback ${quizState.isCorrect ? 'correct' : 'wrong'}`;
@@ -1775,8 +1861,14 @@ function revealWriteAnswer() {
 }
 
 function updateDueList() {
+  const dueList = document.querySelector('.due-list');
   const dueListItems = document.getElementById('dueListItems');
   const dueListMeta = document.getElementById('dueListMeta');
+  dueList.classList.toggle('hidden', isBlindPracticeMode());
+
+  if (isBlindPracticeMode()) {
+    return;
+  }
 
   if (!cards.length) {
     dueListItems.innerHTML = '';
