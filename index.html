@@ -428,6 +428,31 @@ input:focus {
   display: grid;
   gap: 10px;
 }
+.quiz-write-box {
+  margin-top: 18px;
+  display: grid;
+  gap: 10px;
+}
+.quiz-write-input {
+  width: 100%;
+  padding: 15px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 18px;
+  background: white;
+  color: #0f172a;
+  font-size: 16px;
+}
+.quiz-write-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.quiz-write-answer {
+  margin-top: 8px;
+  color: #334155;
+  font-size: 15px;
+  line-height: 1.6;
+}
 .quiz-option {
   border: 1px solid #cbd5e1;
   border-radius: 18px;
@@ -718,6 +743,7 @@ p {
     <button class="chip-btn active" id="practiceFlashBtn" onclick="setPracticeMode('flashcard')">Thẻ</button>
     <button class="chip-btn" id="practiceMeaningBtn" onclick="setPracticeMode('quizMeaning')">Quiz nghĩa</button>
     <button class="chip-btn" id="practiceWordBtn" onclick="setPracticeMode('quizWord')">Quiz từ</button>
+    <button class="chip-btn" id="practiceWriteBtn" onclick="setPracticeMode('writeWord')">Viết từ</button>
     <button class="chip-btn active" id="slowAudioBtn" onclick="toggleSlowAudio()">Đọc chậm: Bật</button>
   </div>
   <div class="search-meta" id="searchMeta">Đang chuẩn bị dữ liệu...</div>
@@ -1039,6 +1065,7 @@ function getProgress(card) {
 function getPracticeModeLabel() {
   if (practiceMode === 'quizMeaning') return 'Quiz nghĩa';
   if (practiceMode === 'quizWord') return 'Quiz từ';
+  if (practiceMode === 'writeWord') return 'Viết từ';
   return 'Thẻ';
 }
 
@@ -1110,6 +1137,14 @@ function shuffleList(items) {
   return cloned;
 }
 
+function normalizeAnswerText(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s'-]/gu, '')
+    .replace(/\s+/g, ' ');
+}
+
 function pickDistractors(sourceCards, currentCard, valueGetter, count = 3) {
   return shuffleList(
     sourceCards.filter(candidate => candidate.word !== currentCard.word && valueGetter(candidate))
@@ -1160,6 +1195,23 @@ function generateQuizState(card) {
       subtitle: card.meaning || 'Thẻ này chưa có nghĩa để tạo quiz từ.',
       kicker: 'Quiz từ',
       options
+    };
+  }
+
+  if (practiceMode === 'writeWord') {
+    if (!card.meaning) return null;
+
+    return {
+      mode: practiceMode,
+      type: 'write',
+      answered: false,
+      typedValue: '',
+      isCorrect: false,
+      answer: card.word,
+      question: 'Viết từ/cụm từ tiếng Anh khớp với nghĩa này',
+      subtitle: card.meaning,
+      kicker: 'Viết từ',
+      helper: `${card.tag}${card.ipa ? ` · ${card.ipa}` : ''}`
     };
   }
 
@@ -1421,6 +1473,7 @@ function updateStudyStats() {
   document.getElementById('practiceFlashBtn').classList.toggle('active', practiceMode === 'flashcard');
   document.getElementById('practiceMeaningBtn').classList.toggle('active', practiceMode === 'quizMeaning');
   document.getElementById('practiceWordBtn').classList.toggle('active', practiceMode === 'quizWord');
+  document.getElementById('practiceWriteBtn').classList.toggle('active', practiceMode === 'writeWord');
   document.getElementById('slowAudioBtn').classList.toggle('active', slowAudioEnabled);
   document.getElementById('slowAudioBtn').textContent = `Đọc chậm: ${slowAudioEnabled ? 'Bật' : 'Tắt'}`;
   document.getElementById('practiceNote').textContent =
@@ -1428,11 +1481,15 @@ function updateStudyStats() {
       ? 'Chế độ thẻ: lật rồi tự chấm mức nhớ.'
       : practiceMode === 'quizMeaning'
         ? 'Quiz nghĩa: bấm 1-4 để chọn đáp án, rồi mới chấm Again/Hard/Good/Easy.'
-        : 'Quiz từ: nhìn nghĩa, chọn đúng từ bằng 1-4 rồi mới chấm mức nhớ.';
+        : practiceMode === 'quizWord'
+          ? 'Quiz từ: nhìn nghĩa, chọn đúng từ bằng 1-4 rồi mới chấm mức nhớ.'
+          : 'Viết từ: nhìn nghĩa tiếng Việt rồi tự gõ đáp án tiếng Anh trước khi chấm.';
   document.getElementById('shortcutHint').textContent =
     practiceMode === 'flashcard'
       ? 'Space lật, ← → chuyển, 1-4 chấm, / để tìm'
-      : '1-4 chọn đáp án, sau đó 1-4 chấm mức nhớ, ← → chuyển, / để tìm';
+      : practiceMode === 'writeWord'
+        ? 'Gõ đáp án, Enter để kiểm tra, sau đó 1-4 chấm mức nhớ'
+        : '1-4 chọn đáp án, sau đó 1-4 chấm mức nhớ, ← → chuyển, / để tìm';
   updateSyncUi();
 }
 
@@ -1599,47 +1656,83 @@ function renderQuiz(card) {
   document.getElementById('quizKicker').textContent = quizState.kicker;
   document.getElementById('quizQuestion').textContent = quizState.question;
   document.getElementById('quizSubtitle').textContent = quizState.subtitle;
-  document.getElementById('quizOptions').innerHTML = quizState.options
-    .map((option, index) => {
-      let stateClass = '';
-      if (quizState.answered) {
-        if (index === quizState.correctIndex) {
-          stateClass = ' correct';
-        } else if (index === quizState.selectedIndex) {
-          stateClass = ' wrong';
-        } else {
-          stateClass = ' dimmed';
-        }
-      }
-
-      return `<button class="quiz-option${stateClass}" type="button" onclick="answerQuiz(${index})" ${quizState.answered ? 'disabled' : ''}>
-        ${index + 1}. ${escapeHtml(option.label)}
-      </button>`;
-    })
-    .join('');
-
   const feedbackEl = document.getElementById('quizFeedback');
   const answerMetaEl = document.getElementById('quizAnswerMeta');
 
-  if (!quizState.answered) {
-    feedbackEl.hidden = true;
-    feedbackEl.textContent = '';
-    feedbackEl.className = 'quiz-feedback';
-    answerMetaEl.textContent = 'Chọn đáp án trước khi chấm mức nhớ.';
+  if (quizState.type === 'write') {
+    document.getElementById('quizOptions').innerHTML = `
+      <div class="quiz-write-box">
+        <input class="quiz-write-input" id="quizWriteInput" placeholder="Gõ đáp án tiếng Anh..." value="${escapeHtml(quizState.typedValue || '')}" onkeydown="handleWriteQuizKeydown(event)">
+        <div class="quiz-write-actions">
+          <button class="secondary-btn" type="button" onclick="submitWriteQuiz()" ${quizState.answered ? 'disabled' : ''}>Kiểm tra</button>
+          <button class="secondary-btn" type="button" onclick="revealWriteAnswer()" ${quizState.answered ? 'disabled' : ''}>Xem đáp án</button>
+        </div>
+      </div>
+    `;
+
+    if (!quizState.answered) {
+      feedbackEl.hidden = true;
+      feedbackEl.textContent = '';
+      feedbackEl.className = 'quiz-feedback';
+      answerMetaEl.textContent = quizState.helper
+        ? `Gợi ý: ${quizState.helper}. Nhấn Enter để kiểm tra.`
+        : 'Gõ đáp án rồi nhấn Enter để kiểm tra.';
+    } else {
+      feedbackEl.hidden = false;
+      feedbackEl.className = `quiz-feedback ${quizState.isCorrect ? 'correct' : 'wrong'}`;
+      feedbackEl.innerHTML = quizState.isCorrect
+        ? `Đúng rồi. Đáp án là <b>${escapeHtml(quizState.answer)}</b>.`
+        : `Chưa đúng. Đáp án đúng là <b>${escapeHtml(quizState.answer)}</b>.`;
+      answerMetaEl.innerHTML = `
+        <div class="quiz-write-answer">Bạn đã viết: ${quizState.typedValue ? `<b>${escapeHtml(quizState.typedValue)}</b>` : '<i>để trống</i>'}</div>
+      `;
+    }
   } else {
-    const correctCard = quizState.options[quizState.correctIndex].card;
-    const isCorrect = quizState.selectedIndex === quizState.correctIndex;
-    feedbackEl.hidden = false;
-    feedbackEl.className = `quiz-feedback ${isCorrect ? 'correct' : 'wrong'}`;
-    feedbackEl.innerHTML = isCorrect
-      ? `Đúng rồi. ${escapeHtml(correctCard.word)} ${correctCard.meaning ? `= ${escapeHtml(correctCard.meaning)}` : ''}`
-      : `Chưa đúng. Đáp án đúng là <b>${escapeHtml(correctCard.word)}</b>${correctCard.meaning ? ` - ${escapeHtml(correctCard.meaning)}` : ''}.`;
-    answerMetaEl.textContent = correctCard.example
-      ? `Ví dụ: ${correctCard.example}`
-      : (correctCard.synonyms ? `Synonyms: ${correctCard.synonyms}` : 'Giờ bạn có thể chấm Again/Hard/Good/Easy.');
+    document.getElementById('quizOptions').innerHTML = quizState.options
+      .map((option, index) => {
+        let stateClass = '';
+        if (quizState.answered) {
+          if (index === quizState.correctIndex) {
+            stateClass = ' correct';
+          } else if (index === quizState.selectedIndex) {
+            stateClass = ' wrong';
+          } else {
+            stateClass = ' dimmed';
+          }
+        }
+
+        return `<button class="quiz-option${stateClass}" type="button" onclick="answerQuiz(${index})" ${quizState.answered ? 'disabled' : ''}>
+          ${index + 1}. ${escapeHtml(option.label)}
+        </button>`;
+      })
+      .join('');
+
+    if (!quizState.answered) {
+      feedbackEl.hidden = true;
+      feedbackEl.textContent = '';
+      feedbackEl.className = 'quiz-feedback';
+      answerMetaEl.textContent = 'Chọn đáp án trước khi chấm mức nhớ.';
+    } else {
+      const correctCard = quizState.options[quizState.correctIndex].card;
+      const isCorrect = quizState.selectedIndex === quizState.correctIndex;
+      feedbackEl.hidden = false;
+      feedbackEl.className = `quiz-feedback ${isCorrect ? 'correct' : 'wrong'}`;
+      feedbackEl.innerHTML = isCorrect
+        ? `Đúng rồi. ${escapeHtml(correctCard.word)} ${correctCard.meaning ? `= ${escapeHtml(correctCard.meaning)}` : ''}`
+        : `Chưa đúng. Đáp án đúng là <b>${escapeHtml(correctCard.word)}</b>${correctCard.meaning ? ` - ${escapeHtml(correctCard.meaning)}` : ''}.`;
+      answerMetaEl.textContent = correctCard.example
+        ? `Ví dụ: ${correctCard.example}`
+        : (correctCard.synonyms ? `Synonyms: ${correctCard.synonyms}` : 'Giờ bạn có thể chấm Again/Hard/Good/Easy.');
+    }
   }
 
   quizPanel.classList.add('show');
+
+  if (quizState.type === 'write' && !quizState.answered) {
+    window.setTimeout(() => {
+      document.getElementById('quizWriteInput')?.focus();
+    }, 0);
+  }
 }
 
 function answerQuiz(optionIndex) {
@@ -1647,6 +1740,35 @@ function answerQuiz(optionIndex) {
 
   quizState.answered = true;
   quizState.selectedIndex = optionIndex;
+  renderQuiz(filteredCards[currentIndex] || null);
+  updateReviewInfo(filteredCards[currentIndex] || null);
+  updateCardOverview(filteredCards[currentIndex] || null);
+}
+
+function handleWriteQuizKeydown(event) {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    submitWriteQuiz();
+  }
+}
+
+function submitWriteQuiz() {
+  if (!quizState || quizState.type !== 'write' || quizState.answered) return;
+
+  const typedValue = document.getElementById('quizWriteInput')?.value || '';
+  quizState.typedValue = typedValue.trim();
+  quizState.answered = true;
+  quizState.isCorrect = normalizeAnswerText(quizState.typedValue) === normalizeAnswerText(quizState.answer);
+  renderQuiz(filteredCards[currentIndex] || null);
+  updateReviewInfo(filteredCards[currentIndex] || null);
+  updateCardOverview(filteredCards[currentIndex] || null);
+}
+
+function revealWriteAnswer() {
+  if (!quizState || quizState.type !== 'write' || quizState.answered) return;
+  quizState.typedValue = document.getElementById('quizWriteInput')?.value.trim() || '';
+  quizState.answered = true;
+  quizState.isCorrect = false;
   renderQuiz(filteredCards[currentIndex] || null);
   updateReviewInfo(filteredCards[currentIndex] || null);
   updateCardOverview(filteredCards[currentIndex] || null);
@@ -1711,12 +1833,16 @@ function updateReviewInfo(card) {
     ? `${stageText} ${formatRelativeTime(progress.nextReviewAt)}`
     : practiceMode === 'flashcard'
       ? 'Lật thẻ trước rồi chọn Again, Hard, Good hoặc Easy.'
-      : 'Trả lời câu quiz trước rồi chọn Again, Hard, Good hoặc Easy.';
+      : practiceMode === 'writeWord'
+        ? 'Gõ đáp án tiếng Anh trước rồi chọn Again, Hard, Good hoặc Easy.'
+        : 'Trả lời câu quiz trước rồi chọn Again, Hard, Good hoặc Easy.';
   document.getElementById('reviewLockHint').textContent = canRateCurrentCard()
     ? 'Có thể dùng phím 1, 2, 3, 4 để chấm nhanh.'
     : practiceMode === 'flashcard'
       ? 'Lật thẻ để mở nút chấm điểm.'
-      : 'Chọn đáp án để mở nút chấm điểm.';
+      : practiceMode === 'writeWord'
+        ? 'Gõ đáp án hoặc bấm Xem đáp án để mở nút chấm điểm.'
+        : 'Chọn đáp án để mở nút chấm điểm.';
 }
 
 function renderCard() {
