@@ -54,6 +54,11 @@ h1 {
   gap: 10px;
   flex-wrap: wrap;
 }
+.search-shell {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
 input {
   width: min(520px, 92vw);
   padding: 13px 16px;
@@ -66,6 +71,30 @@ input {
 input:focus {
   border-color: #6366f1;
   box-shadow: 0 0 0 4px rgba(99,102,241,.15);
+}
+.search-shell input {
+  padding-right: 48px;
+}
+.search-clear {
+  position: absolute;
+  right: 10px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 20px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+.search-clear:hover {
+  background: #eef2ff;
+  color: #3730a3;
+}
+.search-clear:disabled,
+.secondary-btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
 }
 .nav-controls,
 .mode-controls {
@@ -104,12 +133,32 @@ input:focus {
 .chip-btn.active {
   background: #0ea5e9;
 }
+.secondary-btn {
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  padding: 10px 14px;
+  background: white;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.secondary-btn:hover {
+  border-color: #6366f1;
+  color: #3730a3;
+}
 .stat {
   padding: 13px 16px;
   border-radius: 16px;
   background: #eef2ff;
   color: #3730a3;
   font-weight: 700;
+}
+.search-meta {
+  width: 100%;
+  text-align: center;
+  font-size: 13px;
+  color: #64748b;
 }
 .status-bar {
   text-align: center;
@@ -120,6 +169,10 @@ input:focus {
 }
 .status-bar.error { color: #b91c1c; }
 .status-bar.success { color: #166534; }
+.content-layout {
+  max-width: 1400px;
+  margin: 0 auto;
+}
 .study-panel {
   max-width: 920px;
   margin: 14px auto 0;
@@ -158,6 +211,35 @@ input:focus {
   font-size: 14px;
   line-height: 1.5;
 }
+.sync-box {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 18px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+.sync-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.sync-input {
+  width: min(320px, 100%);
+}
+.sync-note,
+.sync-status {
+  margin-top: 10px;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.sync-status.success {
+  color: #166534;
+}
+.sync-status.error {
+  color: #b91c1c;
+}
 .filter-row {
   margin-top: 14px;
   display: flex;
@@ -170,6 +252,12 @@ input:focus {
   gap: 8px;
   flex-wrap: wrap;
   align-items: center;
+}
+.filter-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 .filter-label {
   color: #475569;
@@ -206,18 +294,19 @@ input:focus {
   font-size: 13px;
 }
 .due-list-items {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-  flex-wrap: wrap;
 }
 .due-pill {
   border: 1px solid #cbd5e1;
   background: white;
   color: #1e293b;
-  border-radius: 999px;
+  border-radius: 18px;
   padding: 9px 12px;
   font-size: 13px;
   cursor: pointer;
+  text-align: left;
 }
 .due-pill:hover {
   border-color: #6366f1;
@@ -242,9 +331,152 @@ input:focus {
 .review-btn.hard { background: #f59e0b; }
 .review-btn.good { background: #10b981; }
 .review-btn.easy { background: #3b82f6; }
+.review-lock {
+  margin-top: 10px;
+  text-align: center;
+  color: #64748b;
+  font-size: 13px;
+}
+.practice-note {
+  margin-top: 10px;
+  text-align: center;
+  color: #64748b;
+  font-size: 13px;
+}
 .next-review {
   margin-top: 12px;
   text-align: center;
+  color: #475569;
+  font-size: 14px;
+}
+.progress-panel {
+  margin-bottom: 14px;
+  padding: 16px 18px;
+  border-radius: 22px;
+  background: rgba(255,255,255,.84);
+  border: 1px solid rgba(226,232,240,.9);
+  box-shadow: 0 10px 24px rgba(30,41,59,.08);
+}
+.progress-header,
+.progress-footer {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.progress-title {
+  color: #0f172a;
+  font-size: 20px;
+  font-weight: 800;
+}
+.progress-subtitle,
+.progress-footer {
+  color: #64748b;
+  font-size: 13px;
+}
+.progress-track {
+  margin-top: 12px;
+  height: 10px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+.progress-fill {
+  width: 0;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #22c55e, #6366f1);
+  transition: width .28s ease;
+}
+.progress-action {
+  min-width: 112px;
+}
+.quiz-panel {
+  display: none;
+  border-radius: 28px;
+  padding: 28px;
+  background: rgba(255,255,255,.96);
+  border: 1px solid rgba(226,232,240,.9);
+  box-shadow: 0 18px 35px rgba(30,41,59,.14);
+}
+.quiz-panel.show {
+  display: block;
+}
+.quiz-kicker {
+  color: #4f46e5;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.quiz-question {
+  margin-top: 10px;
+  color: #0f172a;
+  font-size: clamp(26px, 4vw, 40px);
+  font-weight: 800;
+  line-height: 1.2;
+}
+.quiz-subtitle {
+  margin-top: 10px;
+  color: #64748b;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.quiz-options {
+  margin-top: 18px;
+  display: grid;
+  gap: 10px;
+}
+.quiz-option {
+  border: 1px solid #cbd5e1;
+  border-radius: 18px;
+  padding: 14px 16px;
+  background: white;
+  color: #0f172a;
+  text-align: left;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+}
+.quiz-option:hover {
+  border-color: #6366f1;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(99,102,241,.1);
+}
+.quiz-option.correct {
+  border-color: #10b981;
+  background: #ecfdf5;
+  color: #065f46;
+}
+.quiz-option.wrong {
+  border-color: #ef4444;
+  background: #fef2f2;
+  color: #991b1b;
+}
+.quiz-option.dimmed {
+  opacity: .72;
+}
+.quiz-feedback {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.quiz-feedback.correct {
+  background: #ecfdf5;
+  color: #065f46;
+}
+.quiz-feedback.wrong {
+  background: #fef2f2;
+  color: #991b1b;
+}
+.quiz-answer-meta {
+  margin-top: 10px;
   color: #475569;
   font-size: 14px;
 }
@@ -342,6 +574,13 @@ h2 {
   margin: 10px 0 24px;
   z-index: 1;
 }
+.card-meta {
+  color: #334155;
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 0 0 20px;
+  z-index: 1;
+}
 .speaker {
   z-index: 3;
   border: none;
@@ -397,12 +636,43 @@ p {
   padding: 2px 6px;
   border-radius: 8px;
 }
+@media (min-width: 1180px) {
+  .content-layout {
+    display: grid;
+    grid-template-columns: minmax(420px, 540px) minmax(620px, 1fr);
+    gap: 18px;
+    align-items: start;
+    padding: 0 18px 32px;
+  }
+  .study-panel,
+  .stage {
+    max-width: none;
+    padding: 0;
+  }
+  .study-panel {
+    margin: 14px 0 0;
+  }
+  .stage {
+    margin: 14px 0 0;
+    position: sticky;
+    top: 104px;
+  }
+}
 @media (max-width: 560px) {
+  .due-list-items {
+    grid-template-columns: 1fr;
+  }
+  .progress-panel {
+    padding: 14px;
+  }
   .stage { max-width: 100%; }
   .card { height: 390px; }
   .face { padding: 22px; }
   h2, h3 { font-size: clamp(28px, 9vw, 40px); }
   .ipa, p { font-size: 16px; }
+  .card-meta {
+    font-size: 14px;
+  }
   .speaker {
     width: 68px;
     height: 68px;
@@ -425,7 +695,10 @@ p {
 </header>
 
 <div class="toolbar">
-  <input id="search" placeholder="Tìm từ/cụm từ... ví dụ: crispy, gratification, healthcare" oninput="filterCards()">
+  <div class="search-shell">
+    <input id="search" placeholder="Tìm từ/cụm từ... ví dụ: crispy, gratification, healthcare" oninput="filterCards()">
+    <button class="search-clear" id="clearSearchBtn" onclick="clearSearch()" type="button" title="Xóa tìm kiếm" aria-label="Xóa tìm kiếm">×</button>
+  </div>
   <div class="nav-controls">
     <button class="nav-btn" id="prevBtn" onclick="showPrevCard()">Prev</button>
     <div class="stat"><span id="position">0</span> / <span id="count">0</span> thẻ</div>
@@ -434,88 +707,136 @@ p {
   <div class="mode-controls">
     <button class="chip-btn active" id="modeAllBtn" onclick="setStudyMode('all')">Tất cả</button>
     <button class="chip-btn" id="modeDueBtn" onclick="setStudyMode('due')">Đến hạn</button>
+    <button class="chip-btn active" id="practiceFlashBtn" onclick="setPracticeMode('flashcard')">Thẻ</button>
+    <button class="chip-btn" id="practiceMeaningBtn" onclick="setPracticeMode('quizMeaning')">Quiz nghĩa</button>
+    <button class="chip-btn" id="practiceWordBtn" onclick="setPracticeMode('quizWord')">Quiz từ</button>
     <button class="chip-btn active" id="slowAudioBtn" onclick="toggleSlowAudio()">Đọc chậm: Bật</button>
   </div>
+  <div class="search-meta" id="searchMeta">Đang chuẩn bị dữ liệu...</div>
 </div>
 
 <p class="status-bar" id="statusBar">Đang tải dữ liệu từ Google Sheet...</p>
 
-<section class="study-panel">
-  <div class="study-box">
-    <div class="study-stats">
-      <div class="study-badges">
-        <div class="badge">Tổng: <span id="totalCards">0</span></div>
-        <div class="badge">Đến hạn: <span id="dueCards">0</span></div>
-        <div class="badge">Đã có lịch: <span id="scheduledCards">0</span></div>
+<div class="content-layout">
+  <section class="study-panel">
+    <div class="study-box">
+      <div class="study-stats">
+        <div class="study-badges">
+          <div class="badge">Tổng: <span id="totalCards">0</span></div>
+          <div class="badge">Đến hạn: <span id="dueCards">0</span></div>
+          <div class="badge">Đã có lịch: <span id="scheduledCards">0</span></div>
+        </div>
+        <div class="badge">Chế độ: <span id="studyModeLabel">Tất cả</span></div>
       </div>
-      <div class="badge">Chế độ: <span id="studyModeLabel">Tất cả</span></div>
-    </div>
-    <p class="study-note">
-      Luyện tập ngắt quãng: lật thẻ xong, tự chấm mức nhớ của bạn bằng
-      <b>Again</b>, <b>Hard</b>, <b>Good</b>, <b>Easy</b>. Tiến độ sẽ được lưu ngay trên trình duyệt này.
-    </p>
-    <div class="filter-row">
-      <div class="filter-group">
-        <span class="filter-label">Mức review</span>
-        <select class="filter-select" id="reviewFilter" onchange="applyReviewFilters()">
-          <option value="all">Tất cả</option>
-          <option value="again">Again</option>
-          <option value="hard">Hard</option>
-          <option value="good">Good</option>
-          <option value="easy">Easy</option>
-          <option value="unrated">Chưa chấm</option>
-        </select>
+      <p class="study-note">
+        Luyện tập ngắt quãng: lật thẻ xong, tự chấm mức nhớ của bạn bằng
+        <b>Again</b>, <b>Hard</b>, <b>Good</b>, <b>Easy</b>. Tiến độ sẽ được lưu ngay trên trình duyệt này.
+      </p>
+      <div class="sync-box">
+        <div class="sync-row">
+          <span class="filter-label">Mã người học</span>
+          <input class="sync-input" id="learnerIdInput" placeholder="Ví dụ: hien-ielts hoặc email của bạn" onkeydown="handleLearnerIdKeydown(event)">
+          <button class="secondary-btn" type="button" onclick="saveLearnerId()">Lưu mã</button>
+          <button class="secondary-btn" id="syncNowBtn" type="button" onclick="syncNow()">Đồng bộ ngay</button>
+        </div>
+        <div class="sync-note">
+          Cùng một mã người học + cùng endpoint sync thì mở máy khác vẫn khôi phục được lịch sử học.
+        </div>
+        <div class="sync-status" id="syncStatusText">Hiện mới lưu cục bộ trên máy này.</div>
       </div>
-      <div class="filter-group">
-        <span class="filter-label">Thời gian</span>
-        <select class="filter-select" id="timeFilter" onchange="applyReviewFilters()">
-          <option value="all">Tất cả</option>
-          <option value="due">Đang đến hạn</option>
-          <option value="24h">Trong 24 giờ</option>
-          <option value="3d">Trong 3 ngày</option>
-          <option value="7d">Trong 7 ngày</option>
-          <option value="later">Trên 7 ngày</option>
-          <option value="unscheduled">Chưa có lịch</option>
-        </select>
+      <div class="filter-row">
+        <div class="filter-group">
+          <span class="filter-label">Mức review</span>
+          <select class="filter-select" id="reviewFilter" onchange="applyReviewFilters()">
+            <option value="all">Tất cả</option>
+            <option value="again">Again</option>
+            <option value="hard">Hard</option>
+            <option value="good">Good</option>
+            <option value="easy">Easy</option>
+            <option value="unrated">Chưa chấm</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Thời gian</span>
+          <select class="filter-select" id="timeFilter" onchange="applyReviewFilters()">
+            <option value="all">Tất cả</option>
+            <option value="due">Đang đến hạn</option>
+            <option value="24h">Trong 24 giờ</option>
+            <option value="3d">Trong 3 ngày</option>
+            <option value="7d">Trong 7 ngày</option>
+            <option value="later">Trên 7 ngày</option>
+            <option value="unscheduled">Chưa có lịch</option>
+          </select>
+        </div>
+        <div class="filter-actions">
+          <button class="secondary-btn" type="button" onclick="resetFilters()">Xóa lọc</button>
+        </div>
       </div>
-    </div>
-    <div class="due-list">
-      <div class="due-list-header">
-        <div class="due-list-title">Từ cần review</div>
-        <div class="due-list-meta" id="dueListMeta">Chưa có dữ liệu</div>
+      <div class="due-list">
+        <div class="due-list-header">
+          <div class="due-list-title">Danh sách nhanh</div>
+          <div class="due-list-meta" id="dueListMeta">Chưa có dữ liệu</div>
+        </div>
+        <div class="due-list-items" id="dueListItems"></div>
       </div>
-      <div class="due-list-items" id="dueListItems"></div>
+      <div class="review-actions">
+        <button class="review-btn again" id="againBtn" onclick="reviewCurrentCard('again')">Again · 1</button>
+        <button class="review-btn hard" id="hardBtn" onclick="reviewCurrentCard('hard')">Hard · 2</button>
+        <button class="review-btn good" id="goodBtn" onclick="reviewCurrentCard('good')">Good · 3</button>
+        <button class="review-btn easy" id="easyBtn" onclick="reviewCurrentCard('easy')">Easy · 4</button>
+      </div>
+      <div class="practice-note" id="practiceNote">Chế độ thẻ: lật rồi tự chấm mức nhớ.</div>
+      <div class="review-lock" id="reviewLockHint">Lật thẻ để mở nút chấm điểm.</div>
+      <div class="next-review" id="nextReviewInfo">Lật thẻ rồi chọn mức nhớ để lên lịch ôn lại.</div>
     </div>
-    <div class="review-actions">
-      <button class="review-btn again" id="againBtn" onclick="reviewCurrentCard('again')">Again</button>
-      <button class="review-btn hard" id="hardBtn" onclick="reviewCurrentCard('hard')">Hard</button>
-      <button class="review-btn good" id="goodBtn" onclick="reviewCurrentCard('good')">Good</button>
-      <button class="review-btn easy" id="easyBtn" onclick="reviewCurrentCard('easy')">Easy</button>
-    </div>
-    <div class="next-review" id="nextReviewInfo">Lật thẻ rồi chọn mức nhớ để lên lịch ôn lại.</div>
-  </div>
-</section>
+  </section>
 
-<main class="stage">
-  <div class="card" id="card" onclick="flipCard()">
-    <div class="inner">
-      <section class="face front">
-        <span class="num" id="frontNum">1</span>
-        <span class="tag" id="frontTag">word</span>
-        <h2 id="frontWord">Loading...</h2>
-        <p class="ipa" id="frontIpa">...</p>
-        <button class="speaker" id="speakerBtn" onclick="playPronunciation(event)" title="Phát âm chậm">🔊</button>
-        <p class="hint">Bấm vào thẻ để lật</p>
-      </section>
-      <section class="face back">
-        <span class="num" id="backNum">1</span>
-        <h3 id="backWord">Loading...</h3>
-        <div id="backContent"></div>
-        <p class="hint backhint">Bấm lại để quay về</p>
-      </section>
+  <main class="stage">
+    <section class="progress-panel">
+      <div class="progress-header">
+        <div>
+          <div class="progress-title" id="currentCardLabel">Đang tải...</div>
+          <div class="progress-subtitle" id="currentCardMeta">Chuẩn bị danh sách học</div>
+        </div>
+        <button class="secondary-btn progress-action" id="flipActionBtn" type="button" onclick="toggleCardAction(event)">Lật thẻ</button>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-footer">
+        <span id="sessionSummary">0 thẻ đang hiển thị</span>
+        <span id="shortcutHint">Space lật, ← → chuyển, 1-4 chấm, / để tìm</span>
+      </div>
+    </section>
+    <section class="quiz-panel" id="quizPanel">
+      <div class="quiz-kicker" id="quizKicker">Quiz</div>
+      <div class="quiz-question" id="quizQuestion">Đang tải câu hỏi...</div>
+      <div class="quiz-subtitle" id="quizSubtitle">Chuẩn bị dữ liệu luyện tập.</div>
+      <div class="quiz-options" id="quizOptions"></div>
+      <div class="quiz-feedback" id="quizFeedback" hidden></div>
+      <div class="quiz-answer-meta" id="quizAnswerMeta"></div>
+    </section>
+    <div class="card" id="card" onclick="flipCard()">
+      <div class="inner">
+        <section class="face front">
+          <span class="num" id="frontNum">1</span>
+          <span class="tag" id="frontTag">word</span>
+          <h2 id="frontWord">Loading...</h2>
+          <p class="ipa" id="frontIpa">...</p>
+          <p class="card-meta" id="frontMeta">Thẻ này chưa có lịch ôn.</p>
+          <button class="speaker" id="speakerBtn" onclick="playPronunciation(event)" title="Phát âm chậm">🔊</button>
+          <p class="hint" id="frontHint">Bấm vào thẻ hoặc nhấn Space để lật</p>
+        </section>
+        <section class="face back">
+          <span class="num" id="backNum">1</span>
+          <h3 id="backWord">Loading...</h3>
+          <div id="backContent"></div>
+          <p class="hint backhint">Bấm lại để quay về</p>
+        </section>
+      </div>
     </div>
-  </div>
-</main>
+  </main>
+</div>
 
 <p class="empty-state" id="emptyState">Không tìm thấy thẻ phù hợp.</p>
 
@@ -527,6 +848,9 @@ p {
 <script>
 const SHEET_EDIT_URL = 'https://docs.google.com/spreadsheets/d/1Qgo5MPMtL04fCDDxt58VrAWRoOAELoNjw5Op-h-Z3Ko/edit?gid=886364712#gid=886364712';
 const STORAGE_KEY = 'ielts_flashcards_progress_v1';
+const LEARNER_ID_STORAGE_KEY = 'ielts_flashcards_user_id_v1';
+const LAST_SYNC_AT_STORAGE_KEY = 'ielts_flashcards_last_sync_at_v1';
+const SYNC_API_URL = 'https://script.google.com/macros/s/AKfycbzfczUU-ccVkA1BI26ye8hG5IzeS6MhPbDR4rORcFR8sf64LSTLdSnKEWnzhL30aPLt/exec';
 
 const cards = [];
 let filteredCards = [];
@@ -537,6 +861,14 @@ let reviewFilter = 'all';
 let timeFilter = 'all';
 let slowAudioEnabled = true;
 let progressMap = {};
+let isCardFlipped = false;
+let practiceMode = 'flashcard';
+let quizState = null;
+let learnerId = '';
+let syncTimer = 0;
+let syncInFlight = false;
+let pendingSyncAfterCurrent = false;
+let lastSyncedAt = 0;
 
 document.getElementById('sheetLink').href = SHEET_EDIT_URL;
 
@@ -676,18 +1008,316 @@ function cardId(card) {
 
 function loadProgress() {
   try {
-    progressMap = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    progressMap = normalizeProgressMap(JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'));
   } catch {
     progressMap = {};
   }
+
+  learnerId = localStorage.getItem(LEARNER_ID_STORAGE_KEY) || '';
+  lastSyncedAt = Number(localStorage.getItem(LAST_SYNC_AT_STORAGE_KEY) || '0') || 0;
 }
 
-function saveProgress() {
+function saveProgress(skipSync = false) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(progressMap));
+  if (!skipSync) scheduleSync();
 }
 
 function getProgress(card) {
-  return progressMap[cardId(card)] || { stage: 0, nextReviewAt: 0, lastRating: '' };
+  return progressMap[cardId(card)] || { stage: 0, nextReviewAt: 0, lastRating: '', updatedAt: 0 };
+}
+
+function getPracticeModeLabel() {
+  if (practiceMode === 'quizMeaning') return 'Quiz nghĩa';
+  if (practiceMode === 'quizWord') return 'Quiz từ';
+  return 'Thẻ';
+}
+
+function canRateCurrentCard() {
+  if (practiceMode === 'flashcard') return isCardFlipped;
+  return Boolean(quizState?.answered);
+}
+
+function normalizeProgressEntry(entry) {
+  return {
+    stage: Number(entry?.stage || 0) || 0,
+    nextReviewAt: Number(entry?.nextReviewAt || 0) || 0,
+    lastRating: typeof entry?.lastRating === 'string' ? entry.lastRating : '',
+    updatedAt: Number(entry?.updatedAt || 0) || 0
+  };
+}
+
+function normalizeProgressMap(rawMap) {
+  const normalizedMap = {};
+  if (!rawMap || typeof rawMap !== 'object') return normalizedMap;
+
+  Object.entries(rawMap).forEach(([key, value]) => {
+    if (!key || !value || typeof value !== 'object') return;
+    normalizedMap[key] = normalizeProgressEntry(value);
+  });
+
+  return normalizedMap;
+}
+
+function mergeProgressMaps(primaryMap, secondaryMap) {
+  const merged = { ...normalizeProgressMap(primaryMap) };
+
+  Object.entries(normalizeProgressMap(secondaryMap)).forEach(([key, incoming]) => {
+    const current = merged[key];
+    if (!current) {
+      merged[key] = incoming;
+      return;
+    }
+
+    const currentUpdated = current.updatedAt || current.nextReviewAt || 0;
+    const incomingUpdated = incoming.updatedAt || incoming.nextReviewAt || 0;
+    if (incomingUpdated >= currentUpdated) {
+      merged[key] = incoming;
+    }
+  });
+
+  return merged;
+}
+
+function isSyncConfigured() {
+  return Boolean(SYNC_API_URL.trim());
+}
+
+function canSyncNow() {
+  return isSyncConfigured() && Boolean(learnerId.trim());
+}
+
+function formatSyncTime(timestamp) {
+  if (!timestamp) return 'chưa từng';
+  return new Date(timestamp).toLocaleString('vi-VN');
+}
+
+function shuffleList(items) {
+  const cloned = items.slice();
+  for (let index = cloned.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [cloned[index], cloned[randomIndex]] = [cloned[randomIndex], cloned[index]];
+  }
+  return cloned;
+}
+
+function pickDistractors(sourceCards, currentCard, valueGetter, count = 3) {
+  return shuffleList(
+    sourceCards.filter(candidate => candidate.word !== currentCard.word && valueGetter(candidate))
+  ).slice(0, count);
+}
+
+function generateQuizState(card) {
+  if (!card) return null;
+
+  if (practiceMode === 'quizMeaning') {
+    if (!card.meaning) return null;
+    const distractors = pickDistractors(cards, card, candidate => candidate.meaning, 3);
+    const options = shuffleList([
+      { label: card.meaning, card, correct: true },
+      ...distractors.map(candidate => ({ label: candidate.meaning, card: candidate, correct: false }))
+    ]);
+
+    if (options.length < 2) return null;
+
+    return {
+      mode: practiceMode,
+      answered: false,
+      selectedIndex: -1,
+      correctIndex: options.findIndex(option => option.correct),
+      question: `Chọn nghĩa đúng cho "${card.word}"`,
+      subtitle: `${card.ipa || 'Không có IPA'} · ${card.tag}`,
+      kicker: 'Quiz nghĩa',
+      options
+    };
+  }
+
+  if (practiceMode === 'quizWord') {
+    if (!card.meaning) return null;
+    const distractors = pickDistractors(cards, card, candidate => candidate.word, 3);
+    const options = shuffleList([
+      { label: card.word, card, correct: true },
+      ...distractors.map(candidate => ({ label: candidate.word, card: candidate, correct: false }))
+    ]);
+
+    if (options.length < 2) return null;
+
+    return {
+      mode: practiceMode,
+      answered: false,
+      selectedIndex: -1,
+      correctIndex: options.findIndex(option => option.correct),
+      question: 'Chọn từ/cụm từ khớp với nghĩa này',
+      subtitle: card.meaning || 'Thẻ này chưa có nghĩa để tạo quiz từ.',
+      kicker: 'Quiz từ',
+      options
+    };
+  }
+
+  return null;
+}
+
+function setSyncStatusMessage(message, type = '') {
+  const syncStatusText = document.getElementById('syncStatusText');
+  syncStatusText.textContent = message;
+  syncStatusText.className = `sync-status${type ? ` ${type}` : ''}`;
+}
+
+function updateSyncUi() {
+  document.getElementById('learnerIdInput').value = learnerId;
+
+  const syncNowBtn = document.getElementById('syncNowBtn');
+  syncNowBtn.disabled = !canSyncNow() || syncInFlight;
+
+  if (!isSyncConfigured()) {
+    setSyncStatusMessage('Đang chỉ lưu trên máy này. Muốn đồng bộ liên máy, thêm URL Apps Script vào biến SYNC_API_URL.', '');
+    return;
+  }
+
+  if (!learnerId.trim()) {
+    setSyncStatusMessage('Nhập và lưu "Mã người học" để gắn tiến độ này với tài khoản học của bạn.', '');
+    return;
+  }
+
+  if (syncInFlight) {
+    setSyncStatusMessage(`Đang đồng bộ cho "${learnerId}"...`, '');
+    return;
+  }
+
+  setSyncStatusMessage(`Đã bật đồng bộ cho "${learnerId}". Lần sync gần nhất: ${formatSyncTime(lastSyncedAt)}.`, 'success');
+}
+
+function scheduleSync() {
+  if (!canSyncNow()) {
+    updateSyncUi();
+    return;
+  }
+
+  window.clearTimeout(syncTimer);
+  syncTimer = window.setTimeout(() => {
+    pushProgressToCloud(false);
+  }, 700);
+}
+
+async function fetchSyncJson(url, options = {}) {
+  const response = await fetch(url, options);
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
+
+async function pullProgressFromCloud(showStatus = true) {
+  if (!canSyncNow()) {
+    updateSyncUi();
+    return;
+  }
+
+  syncInFlight = true;
+  updateSyncUi();
+
+  try {
+    const remoteData = await fetchSyncJson(`${SYNC_API_URL}?learnerId=${encodeURIComponent(learnerId)}`);
+    progressMap = mergeProgressMaps(progressMap, remoteData.progress || {});
+    lastSyncedAt = Number(remoteData.updatedAt || Date.now()) || Date.now();
+    localStorage.setItem(LAST_SYNC_AT_STORAGE_KEY, String(lastSyncedAt));
+    saveProgress(true);
+
+    if (cards.length) {
+      const currentWord = filteredCards[currentIndex]?.word || '';
+      recomputeFilteredCards(currentWord);
+      renderCard();
+    }
+
+    if (showStatus) {
+      setStatus(`Đã tải tiến độ học cho "${learnerId}" từ cloud.`, 'success');
+    }
+  } catch (error) {
+    console.error(error);
+    if (showStatus) {
+      setStatus('Không tải được tiến độ từ cloud. App vẫn dùng dữ liệu cục bộ hiện tại.', 'error');
+    }
+    setSyncStatusMessage(`Đồng bộ thất bại: ${error.message}`, 'error');
+  } finally {
+    syncInFlight = false;
+    updateSyncUi();
+  }
+}
+
+async function pushProgressToCloud(showStatus = true) {
+  if (!canSyncNow()) {
+    updateSyncUi();
+    return;
+  }
+
+  if (syncInFlight) {
+    pendingSyncAfterCurrent = true;
+    return;
+  }
+
+  syncInFlight = true;
+  updateSyncUi();
+
+  try {
+    const payload = {
+      learnerId,
+      updatedAt: Date.now(),
+      progress: progressMap
+    };
+
+    const remoteData = await fetchSyncJson(SYNC_API_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    lastSyncedAt = Number(remoteData.updatedAt || payload.updatedAt) || payload.updatedAt;
+    localStorage.setItem(LAST_SYNC_AT_STORAGE_KEY, String(lastSyncedAt));
+
+    if (showStatus) {
+      setStatus(`Đã đồng bộ tiến độ học của "${learnerId}".`, 'success');
+    }
+  } catch (error) {
+    console.error(error);
+    if (showStatus) {
+      setStatus('Không đẩy được tiến độ lên cloud. Dữ liệu vẫn đang nằm trên máy này.', 'error');
+    }
+    setSyncStatusMessage(`Đồng bộ thất bại: ${error.message}`, 'error');
+  } finally {
+    syncInFlight = false;
+    updateSyncUi();
+
+    if (pendingSyncAfterCurrent) {
+      pendingSyncAfterCurrent = false;
+      pushProgressToCloud(false);
+    }
+  }
+}
+
+function handleLearnerIdKeydown(event) {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    saveLearnerId();
+  }
+}
+
+function saveLearnerId() {
+  const nextLearnerId = document.getElementById('learnerIdInput').value.trim();
+  learnerId = nextLearnerId;
+
+  if (learnerId) {
+    localStorage.setItem(LEARNER_ID_STORAGE_KEY, learnerId);
+    updateSyncUi();
+    pullProgressFromCloud(true);
+    return;
+  }
+
+  localStorage.removeItem(LEARNER_ID_STORAGE_KEY);
+  updateSyncUi();
+  setStatus('Đã bỏ mã người học. App sẽ chỉ lưu cục bộ trên máy này.', 'success');
+}
+
+function syncNow() {
+  pushProgressToCloud(true);
 }
 
 function getDueCount() {
@@ -704,6 +1334,10 @@ function getScheduledCount() {
 
 function getRatingCount(rating) {
   return cards.filter(card => getProgress(card).lastRating === rating).length;
+}
+
+function getVisibleDueCount() {
+  return filteredCards.filter(card => isDue(card)).length;
 }
 
 function formatRelativeTime(timestamp) {
@@ -774,8 +1408,22 @@ function updateStudyStats() {
   document.getElementById('studyModeLabel').textContent = `${modeText} · ${reviewText} · ${timeTextMap[timeFilter]}`;
   document.getElementById('modeAllBtn').classList.toggle('active', studyMode === 'all');
   document.getElementById('modeDueBtn').classList.toggle('active', studyMode === 'due');
+  document.getElementById('practiceFlashBtn').classList.toggle('active', practiceMode === 'flashcard');
+  document.getElementById('practiceMeaningBtn').classList.toggle('active', practiceMode === 'quizMeaning');
+  document.getElementById('practiceWordBtn').classList.toggle('active', practiceMode === 'quizWord');
   document.getElementById('slowAudioBtn').classList.toggle('active', slowAudioEnabled);
   document.getElementById('slowAudioBtn').textContent = `Đọc chậm: ${slowAudioEnabled ? 'Bật' : 'Tắt'}`;
+  document.getElementById('practiceNote').textContent =
+    practiceMode === 'flashcard'
+      ? 'Chế độ thẻ: lật rồi tự chấm mức nhớ.'
+      : practiceMode === 'quizMeaning'
+        ? 'Quiz nghĩa: bấm 1-4 để chọn đáp án, rồi mới chấm Again/Hard/Good/Easy.'
+        : 'Quiz từ: nhìn nghĩa, chọn đúng từ bằng 1-4 rồi mới chấm mức nhớ.';
+  document.getElementById('shortcutHint').textContent =
+    practiceMode === 'flashcard'
+      ? 'Space lật, ← → chuyển, 1-4 chấm, / để tìm'
+      : '1-4 chọn đáp án, sau đó 1-4 chấm mức nhớ, ← → chuyển, / để tìm';
+  updateSyncUi();
 }
 
 function isDue(card) {
@@ -848,12 +1496,150 @@ function formatReviewShort(timestamp) {
   return `${days} ngày`;
 }
 
+function describeCardProgress(card) {
+  const progress = getProgress(card);
+  return `${getReviewLabel(progress.lastRating)} · ${formatRelativeTime(progress.nextReviewAt)}`;
+}
+
+function updateSearchMeta() {
+  const showing = filteredCards.length;
+  const total = cards.length;
+  const hasActiveFilter =
+    !!searchQuery ||
+    studyMode !== 'all' ||
+    reviewFilter !== 'all' ||
+    timeFilter !== 'all';
+
+  document.getElementById('searchMeta').textContent = hasActiveFilter
+    ? `Đang hiện ${showing}/${total} thẻ theo bộ lọc hiện tại.`
+    : `Đang hiện toàn bộ ${total} thẻ.`;
+  document.getElementById('clearSearchBtn').disabled = !searchQuery;
+}
+
+function updateCardOverview(card) {
+  const flipActionBtn = document.getElementById('flipActionBtn');
+  const progressFill = document.getElementById('progressFill');
+
+  if (!card) {
+    document.getElementById('currentCardLabel').textContent = 'Không có thẻ phù hợp';
+    document.getElementById('currentCardMeta').textContent = 'Thử xóa bớt bộ lọc hoặc từ khóa tìm kiếm.';
+    document.getElementById('sessionSummary').textContent = '0 thẻ đang hiển thị';
+    document.getElementById('frontMeta').textContent = 'Không có dữ liệu để học.';
+    flipActionBtn.textContent = practiceMode === 'flashcard' ? 'Lật thẻ' : 'Đổi câu hỏi';
+    flipActionBtn.disabled = true;
+    progressFill.style.width = '0%';
+    return;
+  }
+
+  const total = filteredCards.length;
+  const progress = getProgress(card);
+  const progressPercent = total ? ((currentIndex + 1) / total) * 100 : 0;
+  const stageText = progress.stage ? `Mức nhớ ${progress.stage}` : 'Chưa lên lịch';
+
+  document.getElementById('currentCardLabel').textContent = `${card.word} · ${card.tag}`;
+  document.getElementById('currentCardMeta').textContent = `${getPracticeModeLabel()} · Thẻ ${currentIndex + 1}/${total} · ${stageText} · ${describeCardProgress(card)}`;
+  document.getElementById('sessionSummary').textContent = `${total} thẻ đang hiển thị · ${getVisibleDueCount()} thẻ đến hạn`;
+  document.getElementById('frontMeta').textContent = describeCardProgress(card);
+  if (practiceMode === 'flashcard') {
+    flipActionBtn.textContent = isCardFlipped ? 'Về mặt trước' : 'Lật thẻ';
+  } else {
+    flipActionBtn.textContent = quizState?.answered ? 'Câu mới' : 'Đổi câu hỏi';
+  }
+  flipActionBtn.disabled = false;
+  progressFill.style.width = `${progressPercent}%`;
+}
+
+function setCardFlipState(flipped) {
+  isCardFlipped = flipped;
+  document.getElementById('card').classList.toggle('flipped', flipped);
+  updateReviewInfo(filteredCards[currentIndex] || null);
+  updateCardOverview(filteredCards[currentIndex] || null);
+}
+
 function jumpToCard(word) {
   const targetIndex = filteredCards.findIndex(card => card.word === word);
   if (targetIndex >= 0) {
     currentIndex = targetIndex;
     renderCard();
   }
+}
+
+function renderQuiz(card) {
+  const quizPanel = document.getElementById('quizPanel');
+  if (practiceMode === 'flashcard' || !card) {
+    quizPanel.classList.remove('show');
+    return;
+  }
+
+  if (!quizState || quizState.mode !== practiceMode) {
+    quizState = generateQuizState(card);
+  }
+
+  if (!quizState) {
+    document.getElementById('quizKicker').textContent = getPracticeModeLabel();
+    document.getElementById('quizQuestion').textContent = 'Không đủ dữ liệu để tạo quiz cho thẻ này.';
+    document.getElementById('quizSubtitle').textContent = 'Hãy thêm nhiều từ hơn hoặc đảm bảo cột nghĩa có dữ liệu.';
+    document.getElementById('quizOptions').innerHTML = '';
+    document.getElementById('quizFeedback').hidden = true;
+    document.getElementById('quizAnswerMeta').textContent = '';
+    quizPanel.classList.add('show');
+    return;
+  }
+
+  document.getElementById('quizKicker').textContent = quizState.kicker;
+  document.getElementById('quizQuestion').textContent = quizState.question;
+  document.getElementById('quizSubtitle').textContent = quizState.subtitle;
+  document.getElementById('quizOptions').innerHTML = quizState.options
+    .map((option, index) => {
+      let stateClass = '';
+      if (quizState.answered) {
+        if (index === quizState.correctIndex) {
+          stateClass = ' correct';
+        } else if (index === quizState.selectedIndex) {
+          stateClass = ' wrong';
+        } else {
+          stateClass = ' dimmed';
+        }
+      }
+
+      return `<button class="quiz-option${stateClass}" type="button" onclick="answerQuiz(${index})" ${quizState.answered ? 'disabled' : ''}>
+        ${index + 1}. ${escapeHtml(option.label)}
+      </button>`;
+    })
+    .join('');
+
+  const feedbackEl = document.getElementById('quizFeedback');
+  const answerMetaEl = document.getElementById('quizAnswerMeta');
+
+  if (!quizState.answered) {
+    feedbackEl.hidden = true;
+    feedbackEl.textContent = '';
+    feedbackEl.className = 'quiz-feedback';
+    answerMetaEl.textContent = 'Chọn đáp án trước khi chấm mức nhớ.';
+  } else {
+    const correctCard = quizState.options[quizState.correctIndex].card;
+    const isCorrect = quizState.selectedIndex === quizState.correctIndex;
+    feedbackEl.hidden = false;
+    feedbackEl.className = `quiz-feedback ${isCorrect ? 'correct' : 'wrong'}`;
+    feedbackEl.innerHTML = isCorrect
+      ? `Đúng rồi. ${escapeHtml(correctCard.word)} ${correctCard.meaning ? `= ${escapeHtml(correctCard.meaning)}` : ''}`
+      : `Chưa đúng. Đáp án đúng là <b>${escapeHtml(correctCard.word)}</b>${correctCard.meaning ? ` - ${escapeHtml(correctCard.meaning)}` : ''}.`;
+    answerMetaEl.textContent = correctCard.example
+      ? `Ví dụ: ${correctCard.example}`
+      : (correctCard.synonyms ? `Synonyms: ${correctCard.synonyms}` : 'Giờ bạn có thể chấm Again/Hard/Good/Easy.');
+  }
+
+  quizPanel.classList.add('show');
+}
+
+function answerQuiz(optionIndex) {
+  if (practiceMode === 'flashcard' || !quizState || quizState.answered) return;
+
+  quizState.answered = true;
+  quizState.selectedIndex = optionIndex;
+  renderQuiz(filteredCards[currentIndex] || null);
+  updateReviewInfo(filteredCards[currentIndex] || null);
+  updateCardOverview(filteredCards[currentIndex] || null);
 }
 
 function updateDueList() {
@@ -866,12 +1652,8 @@ function updateDueList() {
     return;
   }
 
-  const showDueOnly = studyMode === 'due' || (reviewFilter === 'all' && timeFilter === 'all');
-  const dueCards = cards
-    .filter(card => {
-      const baseMatch = showDueOnly ? isDue(card) : true;
-      return baseMatch && matchesReviewFilter(card) && matchesTimeFilter(card);
-    })
+  const visibleCards = filteredCards
+    .slice()
     .sort((left, right) => {
       const leftTime = getProgress(left).nextReviewAt || 0;
       const rightTime = getProgress(right).nextReviewAt || 0;
@@ -879,15 +1661,15 @@ function updateDueList() {
     });
 
   dueListMeta.textContent =
-    `Khớp bộ lọc: ${dueCards.length} · Đến hạn: ${getDueCount()} · Again ${getRatingCount('again')} · Hard ${getRatingCount('hard')} · Good ${getRatingCount('good')} · Easy ${getRatingCount('easy')}`;
+    `Đang hiện: ${filteredCards.length} · Đến hạn: ${getVisibleDueCount()} · Again ${getRatingCount('again')} · Hard ${getRatingCount('hard')} · Good ${getRatingCount('good')} · Easy ${getRatingCount('easy')}`;
 
-  if (!dueCards.length) {
-    dueListItems.innerHTML = '<span class="due-list-meta">Không có từ nào khớp bộ lọc hiện tại.</span>';
+  if (!visibleCards.length) {
+    dueListItems.innerHTML = '<span class="due-list-meta">Không có thẻ nào khớp bộ lọc hiện tại.</span>';
     return;
   }
 
   const activeWord = filteredCards[currentIndex]?.word || '';
-  dueListItems.innerHTML = dueCards
+  dueListItems.innerHTML = visibleCards
     .slice(0, 40)
     .map(card => {
       const progress = getProgress(card);
@@ -901,20 +1683,30 @@ function updateDueList() {
 
 function updateReviewInfo(card) {
   const buttons = ['againBtn', 'hardBtn', 'goodBtn', 'easyBtn'];
-  const disabled = !card;
+  const disabled = !card || !canRateCurrentCard();
   buttons.forEach(id => {
     document.getElementById(id).disabled = disabled;
   });
 
   if (!card) {
     document.getElementById('nextReviewInfo').textContent = 'Không có thẻ phù hợp trong bộ lọc hiện tại.';
+    document.getElementById('reviewLockHint').textContent = 'Hãy điều chỉnh tìm kiếm hoặc bộ lọc.';
     return;
   }
 
   const progress = getProgress(card);
   const stage = progress.stage || 0;
   const stageText = stage ? `Mức nhớ hiện tại: ${stage}.` : 'Thẻ này chưa có lịch ôn.';
-  document.getElementById('nextReviewInfo').textContent = `${stageText} ${formatRelativeTime(progress.nextReviewAt)}`;
+  document.getElementById('nextReviewInfo').textContent = canRateCurrentCard()
+    ? `${stageText} ${formatRelativeTime(progress.nextReviewAt)}`
+    : practiceMode === 'flashcard'
+      ? 'Lật thẻ trước rồi chọn Again, Hard, Good hoặc Easy.'
+      : 'Trả lời câu quiz trước rồi chọn Again, Hard, Good hoặc Easy.';
+  document.getElementById('reviewLockHint').textContent = canRateCurrentCard()
+    ? 'Có thể dùng phím 1, 2, 3, 4 để chấm nhanh.'
+    : practiceMode === 'flashcard'
+      ? 'Lật thẻ để mở nút chấm điểm.'
+      : 'Chọn đáp án để mở nút chấm điểm.';
 }
 
 function renderCard() {
@@ -928,16 +1720,16 @@ function renderCard() {
   document.getElementById('prevBtn').disabled = total <= 1;
   document.getElementById('nextBtn').disabled = total <= 1;
   emptyState.classList.toggle('show', !hasCards);
-  cardEl.style.display = hasCards ? 'block' : 'none';
+  cardEl.style.display = hasCards && practiceMode === 'flashcard' ? 'block' : 'none';
+  updateSearchMeta();
 
   if (!hasCards) {
     updateReviewInfo(null);
     updateStudyStats();
     updateDueList();
+    updateCardOverview(null);
     return;
   }
-
-  cardEl.classList.remove('flipped');
 
   const card = filteredCards[currentIndex];
   document.getElementById('frontNum').textContent = card.number;
@@ -948,21 +1740,39 @@ function renderCard() {
   document.getElementById('frontIpa').textContent = card.ipa || 'Chưa có IPA';
   document.getElementById('speakerBtn').title = card.audio ? 'Phát audio chậm' : 'Phát âm chậm';
   document.getElementById('backContent').innerHTML = buildBackHtml(card);
-
+  isCardFlipped = false;
+  quizState = generateQuizState(card);
+  document.getElementById('card').classList.remove('flipped');
+  renderQuiz(card);
   updateReviewInfo(card);
+  updateCardOverview(card);
+
   updateStudyStats();
   updateDueList();
-}
-
-function flipCard() {
-  if (!filteredCards.length) return;
-  document.getElementById('card').classList.toggle('flipped');
 }
 
 function showCard(index) {
   if (!filteredCards.length) return;
   currentIndex = (index + filteredCards.length) % filteredCards.length;
   renderCard();
+}
+
+function flipCard() {
+  if (!filteredCards.length || practiceMode !== 'flashcard') return;
+  setCardFlipState(!isCardFlipped);
+}
+
+function toggleCardAction(event) {
+  event.stopPropagation();
+  if (practiceMode === 'flashcard') {
+    flipCard();
+    return;
+  }
+
+  quizState = generateQuizState(filteredCards[currentIndex] || null);
+  renderQuiz(filteredCards[currentIndex] || null);
+  updateReviewInfo(filteredCards[currentIndex] || null);
+  updateCardOverview(filteredCards[currentIndex] || null);
 }
 
 function showPrevCard() {
@@ -980,11 +1790,35 @@ function filterCards() {
   renderCard();
 }
 
+function clearSearch() {
+  document.getElementById('search').value = '';
+  filterCards();
+}
+
 function applyReviewFilters() {
   reviewFilter = document.getElementById('reviewFilter').value;
   timeFilter = document.getElementById('timeFilter').value;
   const currentWord = filteredCards[currentIndex]?.word || '';
   recomputeFilteredCards(currentWord);
+  renderCard();
+}
+
+function resetFilters() {
+  searchQuery = '';
+  studyMode = 'all';
+  reviewFilter = 'all';
+  timeFilter = 'all';
+  document.getElementById('search').value = '';
+  document.getElementById('reviewFilter').value = 'all';
+  document.getElementById('timeFilter').value = 'all';
+  recomputeFilteredCards();
+  renderCard();
+}
+
+function setPracticeMode(mode) {
+  practiceMode = mode;
+  quizState = null;
+  isCardFlipped = false;
   renderCard();
 }
 
@@ -1039,31 +1873,37 @@ async function playPronunciation(event) {
 }
 
 function reviewCurrentCard(rating) {
-  if (!filteredCards.length) return;
+  if (!filteredCards.length || !canRateCurrentCard()) return;
 
   const card = filteredCards[currentIndex];
+  const previousIndex = currentIndex;
   const progress = getProgress(card);
   const schedule = getReviewSchedule(progress.stage || 0, rating);
 
   progressMap[cardId(card)] = {
     stage: schedule.stage,
     nextReviewAt: Date.now() + schedule.minutes * 60 * 1000,
-    lastRating: rating
+    lastRating: rating,
+    updatedAt: Date.now()
   };
 
   saveProgress();
 
   const currentWord = card.word;
-  recomputeFilteredCards(currentWord);
+  recomputeFilteredCards();
 
-  if (studyMode === 'due' && !filteredCards.some(item => item.word === currentWord)) {
-    currentIndex = Math.min(currentIndex, Math.max(filteredCards.length - 1, 0));
+  if (!filteredCards.length) {
+    currentIndex = 0;
+  } else if (studyMode === 'due') {
+    currentIndex = Math.min(previousIndex, filteredCards.length - 1);
   } else {
-    const nextIndex = filteredCards.findIndex(item => item.word === currentWord);
-    currentIndex = nextIndex >= 0 ? nextIndex : Math.min(currentIndex + 1, Math.max(filteredCards.length - 1, 0));
+    const nextIndex = filteredCards.findIndex((item, index) => index >= previousIndex && item.word !== currentWord);
+    const wrapIndex = filteredCards.findIndex(item => item.word !== currentWord);
+    currentIndex = nextIndex >= 0 ? nextIndex : (wrapIndex >= 0 ? wrapIndex : 0);
   }
 
   setStatus(`Đã lên lịch ôn lại cho "${card.word}" với mức ${rating.toUpperCase()}.`, 'success');
+  quizState = null;
   renderCard();
 }
 
@@ -1107,10 +1947,37 @@ async function loadSheetData() {
 }
 
 document.addEventListener('keydown', event => {
+  const activeTag = document.activeElement?.tagName;
+  const isTypingField = activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT';
+
+  if (event.key === '/' && !isTypingField) {
+    event.preventDefault();
+    document.getElementById('search').focus();
+    return;
+  }
+
+  if (isTypingField) return;
+
   if (event.key === 'ArrowLeft') {
     showPrevCard();
   } else if (event.key === 'ArrowRight') {
     showNextCard();
+  } else if (event.key === ' ') {
+    event.preventDefault();
+    if (practiceMode === 'flashcard') {
+      flipCard();
+    }
+  } else if (practiceMode !== 'flashcard' && !canRateCurrentCard() && ['1', '2', '3', '4'].includes(event.key)) {
+    const optionIndex = Number(event.key) - 1;
+    answerQuiz(optionIndex);
+  } else if (event.key === '1' && canRateCurrentCard()) {
+    reviewCurrentCard('again');
+  } else if (event.key === '2' && canRateCurrentCard()) {
+    reviewCurrentCard('hard');
+  } else if (event.key === '3' && canRateCurrentCard()) {
+    reviewCurrentCard('good');
+  } else if (event.key === '4' && canRateCurrentCard()) {
+    reviewCurrentCard('easy');
   }
 });
 
@@ -1120,6 +1987,8 @@ if ('speechSynthesis' in window) {
 
 loadProgress();
 updateStudyStats();
+updateSyncUi();
+pullProgressFromCloud(false);
 loadSheetData();
 </script>
 </body>
