@@ -485,6 +485,14 @@ input:focus {
   margin: 22px auto 56px;
   padding: 0 18px;
 }
+.practice-actions {
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: 22px;
+  background: rgba(255,255,255,.84);
+  border: 1px solid rgba(226,232,240,.9);
+  box-shadow: 0 10px 24px rgba(30,41,59,.08);
+}
 .card {
   height: 470px;
   perspective: 1100px;
@@ -779,15 +787,6 @@ p {
         </div>
         <div class="due-list-items" id="dueListItems"></div>
       </div>
-      <div class="review-actions">
-        <button class="review-btn again" id="againBtn" onclick="reviewCurrentCard('again')">Again · 1</button>
-        <button class="review-btn hard" id="hardBtn" onclick="reviewCurrentCard('hard')">Hard · 2</button>
-        <button class="review-btn good" id="goodBtn" onclick="reviewCurrentCard('good')">Good · 3</button>
-        <button class="review-btn easy" id="easyBtn" onclick="reviewCurrentCard('easy')">Easy · 4</button>
-      </div>
-      <div class="practice-note" id="practiceNote">Chế độ thẻ: lật rồi tự chấm mức nhớ.</div>
-      <div class="review-lock" id="reviewLockHint">Lật thẻ để mở nút chấm điểm.</div>
-      <div class="next-review" id="nextReviewInfo">Lật thẻ rồi chọn mức nhớ để lên lịch ôn lại.</div>
     </div>
   </section>
 
@@ -835,6 +834,17 @@ p {
         </section>
       </div>
     </div>
+    <section class="practice-actions">
+      <div class="review-actions">
+        <button class="review-btn again" id="againBtn" onclick="reviewCurrentCard('again')">Again · 1</button>
+        <button class="review-btn hard" id="hardBtn" onclick="reviewCurrentCard('hard')">Hard · 2</button>
+        <button class="review-btn good" id="goodBtn" onclick="reviewCurrentCard('good')">Good · 3</button>
+        <button class="review-btn easy" id="easyBtn" onclick="reviewCurrentCard('easy')">Easy · 4</button>
+      </div>
+      <div class="practice-note" id="practiceNote">Chế độ thẻ: lật rồi tự chấm mức nhớ.</div>
+      <div class="review-lock" id="reviewLockHint">Lật thẻ để mở nút chấm điểm.</div>
+      <div class="next-review" id="nextReviewInfo">Lật thẻ rồi chọn mức nhớ để lên lịch ôn lại.</div>
+    </section>
   </main>
 </div>
 
