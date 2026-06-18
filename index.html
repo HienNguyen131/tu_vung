@@ -820,8 +820,9 @@ p {
       <div class="study-stats">
         <div class="study-badges">
           <div class="badge">Tổng: <span id="totalCards">0</span></div>
+          <div class="badge">Đã học: <span id="learnedCards">0</span></div>
+          <div class="badge">Đang có lịch ôn: <span id="scheduledCards">0</span></div>
           <div class="badge">Đến hạn: <span id="dueCards">0</span></div>
-          <div class="badge">Đã có lịch: <span id="scheduledCards">0</span></div>
         </div>
         <div class="badge">Chế độ: <span id="studyModeLabel">Tất cả</span></div>
       </div>
@@ -837,7 +838,7 @@ p {
           <button class="secondary-btn" id="syncNowBtn" type="button" onclick="syncNow()">Đồng bộ ngay</button>
         </div>
         <div class="sync-note">
-          Cùng một mã người học + cùng endpoint sync thì mở máy khác vẫn khôi phục được lịch sử học.
+          Tiến độ luôn được lưu cục bộ trên máy này. Khi bật cloud sync bằng cùng một mã người học, bạn có thể khôi phục lịch sử học trên máy khác.
         </div>
         <div class="sync-status" id="syncStatusText">Hiện mới lưu cục bộ trên máy này.</div>
       </div>
@@ -892,7 +893,8 @@ p {
         <div class="progress-pills">
           <span class="progress-pill primary" id="progressModePill">Học · Thẻ</span>
           <span class="progress-pill" id="progressPositionPill">Đang học 0/0</span>
-          <span class="progress-pill" id="progressScheduledPill">Đã học 0/0</span>
+          <span class="progress-pill" id="progressLearnedPill">Đã học 0</span>
+          <span class="progress-pill" id="progressScheduledPill">Có lịch ôn 0</span>
           <span class="progress-pill" id="progressDuePill">Đến hạn 0</span>
         </div>
       </div>
@@ -1324,23 +1326,28 @@ function updateSyncUi() {
 
   const syncNowBtn = document.getElementById('syncNowBtn');
   syncNowBtn.disabled = !canSyncNow() || syncInFlight;
+  const learnedCount = getLearnedCount();
+  const scheduledCount = getScheduledCount();
 
   if (!isSyncConfigured()) {
-    setSyncStatusMessage('Đang chỉ lưu trên máy này. Muốn đồng bộ liên máy, thêm URL Apps Script vào biến SYNC_API_URL.', '');
+    setSyncStatusMessage(`Cloud sync đang tắt. Tiến độ vẫn được lưu cục bộ trên máy này. Đã học ${learnedCount} từ.`, '');
     return;
   }
 
   if (!learnerId.trim()) {
-    setSyncStatusMessage('Nhập và lưu "Mã người học" để gắn tiến độ này với tài khoản học của bạn.', '');
+    setSyncStatusMessage(`Tiến độ hiện vẫn đang lưu trên máy này. Nhập "Mã người học" để bật cloud sync và nối tiếp giữa các máy. Đã học ${learnedCount} từ.`, '');
     return;
   }
 
   if (syncInFlight) {
-    setSyncStatusMessage(`Đang đồng bộ cho "${learnerId}"...`, '');
+    setSyncStatusMessage(`Đang đồng bộ local -> cloud cho "${learnerId}"...`, '');
     return;
   }
 
-  setSyncStatusMessage(`Đã bật đồng bộ cho "${learnerId}". Lần sync gần nhất: ${formatSyncTime(lastSyncedAt)}.`, 'success');
+  const syncText = lastSyncedAt
+    ? `Lần sync gần nhất: ${formatSyncTime(lastSyncedAt)}.`
+    : 'Chưa có lần sync nào lên cloud.';
+  setSyncStatusMessage(`Cloud sync đã bật cho "${learnerId}". Đã học ${learnedCount} từ, đang có lịch ôn ${scheduledCount} từ. ${syncText}`, 'success');
 }
 
 function scheduleSync() {
@@ -1473,8 +1480,14 @@ function saveLearnerId() {
   setStatus('Đã bỏ mã người học. App sẽ chỉ lưu cục bộ trên máy này.', 'success');
 }
 
-function syncNow() {
-  pushProgressToCloud(true);
+async function syncNow() {
+  if (!canSyncNow()) {
+    updateSyncUi();
+    return;
+  }
+
+  await pullProgressFromCloud(false);
+  await pushProgressToCloud(true);
 }
 
 function getDueCount() {
@@ -1483,6 +1496,22 @@ function getDueCount() {
     const progress = getProgress(card);
     return progress.nextReviewAt && progress.nextReviewAt <= now;
   }).length;
+}
+
+function hasStudyHistory(entry) {
+  return Boolean(
+    entry
+    && (
+      entry.updatedAt
+      || entry.lastRating
+      || entry.nextReviewAt
+      || entry.stage > 0
+    )
+  );
+}
+
+function getLearnedCount() {
+  return Object.values(progressMap).filter(hasStudyHistory).length;
 }
 
 function getScheduledCount() {
@@ -1545,6 +1574,7 @@ function getReviewSchedule(stage, rating) {
 
 function updateStudyStats() {
   document.getElementById('totalCards').textContent = cards.length;
+  document.getElementById('learnedCards').textContent = getLearnedCount();
   document.getElementById('dueCards').textContent = getDueCount();
   document.getElementById('scheduledCards').textContent = getScheduledCount();
   const modeText = studyMode === 'due'
@@ -1690,6 +1720,7 @@ function updateCardOverview(card) {
   const progressFill = document.getElementById('progressFill');
   const progressModePill = document.getElementById('progressModePill');
   const progressPositionPill = document.getElementById('progressPositionPill');
+  const progressLearnedPill = document.getElementById('progressLearnedPill');
   const progressScheduledPill = document.getElementById('progressScheduledPill');
   const progressDuePill = document.getElementById('progressDuePill');
   const progressTrackLabel = document.getElementById('progressTrackLabel');
@@ -1702,7 +1733,8 @@ function updateCardOverview(card) {
     document.getElementById('frontMeta').textContent = 'Không có dữ liệu để học.';
     progressModePill.textContent = getPracticeModeDisplayLabel();
     progressPositionPill.textContent = `${getPracticeActivityLabel()} 0/0`;
-    progressScheduledPill.textContent = `Đã học ${getScheduledCount()}/${cards.length}`;
+    progressLearnedPill.textContent = `Đã học ${getLearnedCount()}`;
+    progressScheduledPill.textContent = `Có lịch ôn ${getScheduledCount()}`;
     progressDuePill.textContent = `Đến hạn ${getVisibleDueCount()}`;
     progressTrackLabel.textContent = 'Tiến độ trong danh sách hiện tại';
     progressTrackValue.textContent = '0%';
@@ -1717,6 +1749,7 @@ function updateCardOverview(card) {
   const progressPercent = total ? ((currentIndex + 1) / total) * 100 : 0;
   const stageText = progress.stage ? `Mức nhớ ${progress.stage}` : 'Chưa lên lịch';
   const hideAnswerText = isBlindPracticeMode();
+  const learnedCount = getLearnedCount();
   const scheduledCount = getScheduledCount();
   const visibleDueCount = getVisibleDueCount();
   const reviewSummary = progress.lastRating
@@ -1736,7 +1769,8 @@ function updateCardOverview(card) {
   document.getElementById('frontMeta').textContent = hideAnswerText ? stageText : describeCardProgress(card);
   progressModePill.textContent = getPracticeModeDisplayLabel();
   progressPositionPill.textContent = `${getPracticeActivityLabel()} ${currentIndex + 1}/${total}`;
-  progressScheduledPill.textContent = `Đã học ${scheduledCount}/${cards.length}`;
+  progressLearnedPill.textContent = `Đã học ${learnedCount}`;
+  progressScheduledPill.textContent = `Có lịch ôn ${scheduledCount}`;
   progressDuePill.textContent = `Đến hạn ${visibleDueCount}`;
   progressTrackLabel.textContent = 'Tiến độ trong danh sách hiện tại';
   progressTrackValue.textContent = `${Math.round(progressPercent)}%`;
