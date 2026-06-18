@@ -104,6 +104,23 @@ input:focus {
   gap: 10px;
   flex-wrap: wrap;
 }
+.mode-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  border: 1px solid #dbe4f0;
+  border-radius: 18px;
+  background: rgba(255,255,255,.72);
+}
+.mode-group-label {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #64748b;
+}
 .nav-btn,
 .chip-btn,
 .review-btn {
@@ -771,14 +788,26 @@ p {
     <button class="nav-btn" id="nextBtn" onclick="showNextCard()">Next</button>
   </div>
   <div class="mode-controls">
-    <button class="chip-btn active" id="modeAllBtn" onclick="setStudyMode('all')">Tất cả</button>
-    <button class="chip-btn" id="modeDueBtn" onclick="setStudyMode('due')">Đến hạn</button>
-    <button class="chip-btn" id="modeScheduledBtn" onclick="setStudyMode('scheduled')">Đã có lịch</button>
-    <button class="chip-btn active" id="practiceFlashBtn" onclick="setPracticeMode('flashcard')">Thẻ</button>
-    <button class="chip-btn" id="practiceMeaningBtn" onclick="setPracticeMode('quizMeaning')">Quiz nghĩa</button>
-    <button class="chip-btn" id="practiceWordBtn" onclick="setPracticeMode('quizWord')">Quiz từ</button>
-    <button class="chip-btn" id="practiceWriteBtn" onclick="setPracticeMode('writeWord')">Viết từ</button>
-    <button class="chip-btn active" id="slowAudioBtn" onclick="toggleSlowAudio()">Đọc chậm: Bật</button>
+    <div class="mode-group">
+      <span class="mode-group-label">Danh sách</span>
+      <button class="chip-btn active" id="modeAllBtn" onclick="setStudyMode('all')">Tất cả</button>
+      <button class="chip-btn" id="modeDueBtn" onclick="setStudyMode('due')">Đến hạn</button>
+      <button class="chip-btn" id="modeScheduledBtn" onclick="setStudyMode('scheduled')">Đã có lịch</button>
+    </div>
+    <div class="mode-group">
+      <span class="mode-group-label">Học</span>
+      <button class="chip-btn active" id="practiceFlashBtn" onclick="setPracticeMode('flashcard')">Thẻ</button>
+    </div>
+    <div class="mode-group">
+      <span class="mode-group-label">Ôn</span>
+      <button class="chip-btn" id="practiceMeaningBtn" onclick="setPracticeMode('quizMeaning')">Quiz nghĩa</button>
+      <button class="chip-btn" id="practiceWordBtn" onclick="setPracticeMode('quizWord')">Quiz từ</button>
+      <button class="chip-btn" id="practiceWriteBtn" onclick="setPracticeMode('writeWord')">Viết từ</button>
+    </div>
+    <div class="mode-group">
+      <span class="mode-group-label">Âm thanh</span>
+      <button class="chip-btn active" id="slowAudioBtn" onclick="toggleSlowAudio()">Đọc chậm: Bật</button>
+    </div>
   </div>
   <div class="search-meta" id="searchMeta">Đang chuẩn bị dữ liệu...</div>
 </div>
@@ -861,7 +890,7 @@ p {
       </div>
       <div class="progress-meta-row">
         <div class="progress-pills">
-          <span class="progress-pill primary" id="progressModePill">Thẻ</span>
+          <span class="progress-pill primary" id="progressModePill">Học · Thẻ</span>
           <span class="progress-pill" id="progressPositionPill">Đang học 0/0</span>
           <span class="progress-pill" id="progressScheduledPill">Đã học 0/0</span>
           <span class="progress-pill" id="progressDuePill">Đến hạn 0</span>
@@ -913,7 +942,7 @@ p {
         <button class="review-btn good" id="goodBtn" onclick="reviewCurrentCard('good')">Good · 3</button>
         <button class="review-btn easy" id="easyBtn" onclick="reviewCurrentCard('easy')">Easy · 4</button>
       </div>
-      <div class="practice-note" id="practiceNote">Chế độ thẻ: lật rồi tự chấm mức nhớ.</div>
+      <div class="practice-note" id="practiceNote">Học bằng thẻ: lật thẻ, xem đáp án rồi tự chấm mức nhớ.</div>
       <div class="review-lock" id="reviewLockHint">Lật thẻ để mở nút chấm điểm.</div>
       <div class="next-review" id="nextReviewInfo">Lật thẻ rồi chọn mức nhớ để lên lịch ôn lại.</div>
     </section>
@@ -1113,6 +1142,22 @@ function getPracticeModeLabel() {
   if (practiceMode === 'quizWord') return 'Quiz từ';
   if (practiceMode === 'writeWord') return 'Viết từ';
   return 'Thẻ';
+}
+
+function isReviewPracticeMode() {
+  return practiceMode !== 'flashcard';
+}
+
+function getPracticeGroupLabel() {
+  return isReviewPracticeMode() ? 'Ôn' : 'Học';
+}
+
+function getPracticeModeDisplayLabel() {
+  return `${getPracticeGroupLabel()} · ${getPracticeModeLabel()}`;
+}
+
+function getPracticeActivityLabel() {
+  return isReviewPracticeMode() ? 'Đang ôn' : 'Đang học';
 }
 
 function isBlindPracticeMode() {
@@ -1533,12 +1578,12 @@ function updateStudyStats() {
   document.getElementById('slowAudioBtn').textContent = `Đọc chậm: ${slowAudioEnabled ? 'Bật' : 'Tắt'}`;
   document.getElementById('practiceNote').textContent =
     practiceMode === 'flashcard'
-      ? 'Chế độ thẻ: lật rồi tự chấm mức nhớ.'
+      ? 'Học bằng thẻ: lật thẻ, xem đáp án rồi tự chấm mức nhớ.'
       : practiceMode === 'quizMeaning'
-        ? 'Quiz nghĩa: bấm 1-4 để chọn đáp án, rồi mới chấm Again/Hard/Good/Easy.'
+        ? 'Ôn bằng quiz nghĩa: bấm 1-4 để chọn đáp án, rồi mới chấm Again/Hard/Good/Easy.'
         : practiceMode === 'quizWord'
-          ? 'Quiz từ: nhìn nghĩa, chọn đúng từ bằng 1-4 rồi mới chấm mức nhớ.'
-          : 'Viết từ: nhìn nghĩa tiếng Việt rồi tự gõ đáp án tiếng Anh trước khi chấm.';
+          ? 'Ôn bằng quiz từ: nhìn nghĩa, chọn đúng từ bằng 1-4 rồi mới chấm mức nhớ.'
+          : 'Ôn bằng viết từ: nhìn nghĩa tiếng Việt rồi tự gõ đáp án tiếng Anh trước khi chấm.';
   document.getElementById('shortcutHint').textContent =
     practiceMode === 'flashcard'
       ? 'Space lật, ← → chuyển, 1-4 chấm, / để tìm'
@@ -1655,8 +1700,8 @@ function updateCardOverview(card) {
     document.getElementById('currentCardMeta').textContent = 'Thử xóa bớt bộ lọc hoặc từ khóa tìm kiếm.';
     document.getElementById('sessionSummary').textContent = '0 thẻ trong danh sách hiện tại';
     document.getElementById('frontMeta').textContent = 'Không có dữ liệu để học.';
-    progressModePill.textContent = getPracticeModeLabel();
-    progressPositionPill.textContent = 'Đang học 0/0';
+    progressModePill.textContent = getPracticeModeDisplayLabel();
+    progressPositionPill.textContent = `${getPracticeActivityLabel()} 0/0`;
     progressScheduledPill.textContent = `Đã học ${getScheduledCount()}/${cards.length}`;
     progressDuePill.textContent = `Đến hạn ${getVisibleDueCount()}`;
     progressTrackLabel.textContent = 'Tiến độ trong danh sách hiện tại';
@@ -1679,18 +1724,18 @@ function updateCardOverview(card) {
     : formatRelativeTime(progress.nextReviewAt);
 
   document.getElementById('currentCardLabel').textContent = hideAnswerText
-    ? `${getPracticeModeLabel()} đang học`
+    ? `${getPracticeModeLabel()} ${getPracticeActivityLabel().toLowerCase()}`
     : `${card.word} · ${card.tag}`;
   document.getElementById('currentCardMeta').textContent = hideAnswerText
     ? `${stageText} · ${reviewSummary}`
-    : `${getPracticeModeLabel()} · ${stageText} · ${reviewSummary}`;
+    : `${getPracticeModeDisplayLabel()} · ${stageText} · ${reviewSummary}`;
   document.getElementById('sessionSummary').textContent =
     visibleDueCount > 0
       ? `Còn ${visibleDueCount} thẻ đến hạn trong danh sách hiện tại`
       : 'Danh sách hiện tại không còn thẻ đến hạn';
   document.getElementById('frontMeta').textContent = hideAnswerText ? stageText : describeCardProgress(card);
-  progressModePill.textContent = getPracticeModeLabel();
-  progressPositionPill.textContent = `Đang học ${currentIndex + 1}/${total}`;
+  progressModePill.textContent = getPracticeModeDisplayLabel();
+  progressPositionPill.textContent = `${getPracticeActivityLabel()} ${currentIndex + 1}/${total}`;
   progressScheduledPill.textContent = `Đã học ${scheduledCount}/${cards.length}`;
   progressDuePill.textContent = `Đến hạn ${visibleDueCount}`;
   progressTrackLabel.textContent = 'Tiến độ trong danh sách hiện tại';
